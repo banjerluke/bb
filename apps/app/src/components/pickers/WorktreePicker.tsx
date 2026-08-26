@@ -172,7 +172,10 @@ export function WorktreePicker({
       </DropdownMenuTrigger>
       <DropdownMenuContent
         align="start"
-        className={cn(OPTION_MENU_CONTENT_CLASS_NAME, "max-w-96")}
+        className={cn(
+          OPTION_MENU_CONTENT_CLASS_NAME,
+          "max-h-[var(--radix-dropdown-menu-content-available-height)] max-w-96 overflow-x-hidden overflow-y-auto overscroll-contain",
+        )}
         mobileTitle="Worktree"
       >
         <DropdownMenuLabel>Existing worktrees</DropdownMenuLabel>
