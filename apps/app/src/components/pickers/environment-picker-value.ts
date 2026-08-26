@@ -13,12 +13,21 @@ interface ParsedReuseEnvironmentValue {
   environmentId: string | null;
 }
 
+/** A discovered user-managed worktree with no environment yet. Submission
+ * attaches it through the unmanaged workspace request at its canonical path. */
+interface ParsedWorktreePathEnvironmentValue {
+  type: "worktree-path";
+  hostId: string;
+  canonicalPath: string;
+}
+
 /** Bare reuse value — env mode set, specific worktree not chosen yet. */
 export const REUSE_VALUE_WITHOUT_ENVIRONMENT = "reuse";
 
 export type ParsedEnvironmentValue =
   | ParsedHostEnvironmentValue
   | ParsedReuseEnvironmentValue
+  | ParsedWorktreePathEnvironmentValue
   | null;
 
 export function encodeHostValue(
@@ -30,6 +39,34 @@ export function encodeHostValue(
 
 export function encodeReuseValue(environmentId: string): string {
   return `reuse:${environmentId}`;
+}
+
+/** Segments are URI-component encoded so paths with `:`—or any other
+ * character—round-trip through the single-string picker value. */
+export function encodeWorktreePathValue(
+  hostId: string,
+  canonicalPath: string,
+): string {
+  return `path:${encodeURIComponent(hostId)}:${encodeURIComponent(canonicalPath)}`;
+}
+
+function parseWorktreePathValue(
+  value: string,
+): ParsedWorktreePathEnvironmentValue | null {
+  const segments = value.slice("path:".length).split(":");
+  if (segments.length !== 2) {
+    return null;
+  }
+  try {
+    const hostId = decodeURIComponent(segments[0]);
+    const canonicalPath = decodeURIComponent(segments[1]);
+    if (hostId.length === 0 || canonicalPath.length === 0) {
+      return null;
+    }
+    return { type: "worktree-path", hostId, canonicalPath };
+  } catch {
+    return null;
+  }
 }
 
 export function parseEnvironmentValue(value: string): ParsedEnvironmentValue {
@@ -49,6 +86,9 @@ export function parseEnvironmentValue(value: string): ParsedEnvironmentValue {
     if (environmentId.length > 0) {
       return { type: "reuse", environmentId };
     }
+  }
+  if (value.startsWith("path:")) {
+    return parseWorktreePathValue(value);
   }
   return null;
 }

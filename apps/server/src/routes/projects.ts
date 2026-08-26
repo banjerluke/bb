@@ -73,6 +73,7 @@ import {
   requestProjectDeletionAdvance,
 } from "../services/projects/project-deletion.js";
 import { resolveDefaultWorktreeBaseBranch } from "../services/projects/worktree-base-branch.js";
+import { discoverProjectWorktrees } from "../services/projects/project-worktrees.js";
 import { listProjectPromptHistory } from "../services/prompt-history.js";
 import { parsePathKindInclusion } from "./path-list-inclusion.js";
 import {
@@ -864,6 +865,14 @@ export function registerProjectRoutes(app: Hono, deps: AppDeps): void {
       ...result,
       defaultWorktreeBaseBranch: resolveDefaultWorktreeBaseBranch(result),
     });
+  });
+
+  get(routes.worktrees, async (context) => {
+    const projectId = context.req.param("id");
+    requirePublicStandardProject(deps.db, projectId);
+
+    const result = await discoverProjectWorktrees(deps, { projectId });
+    return context.json(result);
   });
 
   post(routes.uploadAttachment, async (context) => {

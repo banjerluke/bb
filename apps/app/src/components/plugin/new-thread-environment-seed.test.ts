@@ -116,14 +116,31 @@ describe("newThreadEnvironmentArgsToSeed round trip", () => {
     ).toBeNull();
   });
 
-  it("documented limit: an unmanaged path is not representable", () => {
+  it("seeds an unmanaged path as a discovered-worktree selection", () => {
     const seed = newThreadEnvironmentArgsToSeed({
       type: "host",
       hostId: "host_1",
       workspace: { type: "unmanaged", path: "/somewhere/else" },
     });
-    // The seed keeps host and branch; the resolved environment submits
-    // path: null (the host's configured checkout).
-    expect(seed).toEqual({ selectionValue: "host:host_1:local", branch: null });
+    expect(seed).toEqual({
+      selectionValue: `path:host_1:${encodeURIComponent("/somewhere/else")}`,
+      branch: null,
+    });
+  });
+
+  it("documented limit: an unmanaged path with a branch is not representable", () => {
+    // A discovered-worktree selection never carries branch intent, so this
+    // combination has no picker state; the composer falls back to defaults.
+    expect(
+      newThreadEnvironmentArgsToSeed({
+        type: "host",
+        hostId: "host_1",
+        workspace: {
+          type: "unmanaged",
+          path: "/somewhere/else",
+          branch: { kind: "existing", name: "main" },
+        },
+      }),
+    ).toBeNull();
   });
 });

@@ -190,11 +190,11 @@ type InitialReadyProviderResolution =
 
 function sanitizeStoredEnvironmentValue(stored: string): string {
   // Legacy guard: earlier iterations briefly persisted `reuse:<envId>` to
-  // localStorage. Treat any persisted reuse value as absent so the picker
-  // never resurrects a stale reuse selection across sessions.
+  // localStorage. Treat any persisted reuse or discovered-worktree value as
+  // absent so the picker never resurrects a stale selection across sessions.
   if (!stored) return "";
   const parsed = parseEnvironmentValue(stored);
-  if (parsed?.type === "reuse") return "";
+  if (parsed?.type === "reuse" || parsed?.type === "worktree-path") return "";
   return stored;
 }
 
@@ -884,10 +884,10 @@ export function useThreadCreationOptions(
     (value: string) => {
       if (scope === "new-thread") {
         const parsed = parseEnvironmentValue(value);
-        if (parsed?.type === "reuse") {
-          // Reuse intent is transient. Hold it in root-compose state so the
-          // picker reflects the user's choice without overwriting their
-          // persisted host-mode default.
+        if (parsed?.type === "reuse" || parsed?.type === "worktree-path") {
+          // Reuse and discovered-worktree intent is transient. Hold it in
+          // root-compose state so the picker reflects the user's choice
+          // without overwriting their persisted host-mode default.
           setRootComposeReuseValue(value);
           return;
         }

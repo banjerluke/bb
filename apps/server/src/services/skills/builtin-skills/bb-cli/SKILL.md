@@ -307,6 +307,15 @@ status|install` to inspect or install provider CLIs on a selected machine.
   (convert them to JPEG or PNG first). `bb project attachment download <project-id>
 <attachment-path> --client-file <path>` writes existing attachment bytes on
   the CLI machine. There is no project-attachment list or per-file remove API.
+- `bb project worktrees <project-id>` discovers the git worktrees registered
+  by every configured project source and merges them with reusable bb
+  environments. Rows show checkout (branch or detached), path, availability
+  (stale registrations are listed but unavailable), ownership (`bb-managed`
+  vs `user-managed`), and the environment ID when one is attached. Partial
+  discovery still succeeds: unreachable machines appear as failure rows, and
+  `--json` returns the complete typed response including `failures`. Start a
+  thread in a discovered worktree by passing its path as an unmanaged
+  workspace; bb never removes a user-managed worktree or its branch.
 - `bb project history|reorder` exposes project prompt recall and sidebar order.
 - Direct environment inspection accepts any environment ID: use `bb environment
 status|branches|paths|diff|diff-files|diff-file|diff-patch <id>` and `bb

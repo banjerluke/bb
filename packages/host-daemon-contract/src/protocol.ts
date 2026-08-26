@@ -1,3 +1,12 @@
+// Version 171 adds the online RPC command `host.list_worktrees` for project
+// worktree discovery. The daemon answers with the worktrees registered at a
+// host path — checkout kind, lock and prunable metadata, and canonical
+// (realpath) identities computed on that host — plus canonical resolutions of
+// the stored environment paths the server passes for comparison. An older
+// daemon does not recognize the command type and would reject the request
+// message, so the bump moves enrolled machines onto a daemon that can answer
+// it instead of leaving discovery permanently failing on that host.
+//
 // Version 164 stops the server accepting any interaction lifecycle record
 // from a daemon event batch. `system/interaction/lifecycle` and the legacy
 // `system/permissionGrant/lifecycle` / `system/userQuestion/lifecycle` are
@@ -333,7 +342,7 @@
 //
 // The version mismatch is what triggers the enrolled daemon's automatic update
 // instead of an `invalid-message` reconnect loop.
-export const HOST_DAEMON_PROTOCOL_VERSION = 170 as const;
+export const HOST_DAEMON_PROTOCOL_VERSION = 171 as const;
 
 /**
  * Absolute ceiling for any executable artifact delivered to a host daemon —

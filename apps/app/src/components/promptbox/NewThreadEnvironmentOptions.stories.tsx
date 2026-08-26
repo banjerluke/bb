@@ -95,6 +95,7 @@ function EnvironmentOptionsStrip({
             {showWorktreePicker ? (
               <WorktreePicker
                 options={STORY_WORKTREE_OPTIONS}
+                failures={[]}
                 value={worktreeValue}
                 onChange={noop}
                 muted
@@ -249,7 +250,7 @@ export function Overview() {
         >
           <EnvironmentOptionsStrip
             environment={{ value: "reuse" }}
-            worktreeValue="env_review_flow"
+            worktreeValue="reuse:env_review_flow"
           />
         </StoryRow>
         <StoryRow

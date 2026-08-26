@@ -21,10 +21,12 @@ import {
   jsonObjectSchema,
   jsonValueSchema,
   providerNativeRootSetSchema,
+  hostWorktreeListResultSchema,
   BRANCH_LIST_LIMIT_MAX,
   BRANCH_LIST_QUERY_MAX_LENGTH,
   FILE_LIST_LIMIT_MAX,
   FILE_LIST_QUERY_MAX_LENGTH,
+  WORKTREE_COMPARISON_PATHS_MAX,
 } from "@bb/domain";
 import { z } from "zod";
 import {
@@ -937,6 +939,23 @@ const hostBranchOptionsResultSchema = projectSourceCheckoutSchema.pick({
   remoteBranchesTruncated: true,
   selectedBranch: true,
 });
+
+/**
+ * List every git worktree registered at an absolute host path, with canonical
+ * (realpath) identities computed on that host, plus canonical resolutions of
+ * the stored environment paths the server wants to compare against. Read-only
+ * path-only sibling of `host.list_branches`: it never mutates git state, never
+ * prunes, and fails rather than truncating on timeout or output overflow.
+ */
+const hostListWorktreesCommandSchema = z
+  .object({
+    type: z.literal("host.list_worktrees"),
+    path: z.string().min(1),
+    comparisonPaths: z
+      .array(z.string().min(1))
+      .max(WORKTREE_COMPARISON_PATHS_MAX),
+  })
+  .strict();
 
 const providerListModelsCommandSchema = z.object({
   type: z.literal("provider.list_models"),
@@ -1904,6 +1923,15 @@ export const hostDaemonCommandRegistry = {
     type: "host.list_branch_options",
     schema: hostListBranchOptionsCommandSchema,
     resultSchema: hostBranchOptionsResultSchema,
+    transport: "onlineRpc",
+    retryable: true,
+    flushEventsBeforeResult: false,
+    envLane: null,
+  }),
+  "host.list_worktrees": defineHostDaemonCommandDescriptor({
+    type: "host.list_worktrees",
+    schema: hostListWorktreesCommandSchema,
+    resultSchema: hostWorktreeListResultSchema,
     transport: "onlineRpc",
     retryable: true,
     flushEventsBeforeResult: false,

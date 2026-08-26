@@ -2,6 +2,7 @@ import type { CreateThreadEnvironmentArgs } from "@bb/server-contract";
 import {
   encodeHostValue,
   encodeReuseValue,
+  encodeWorktreePathValue,
 } from "@/components/pickers/environment-picker-value";
 import type { RootComposeSelectedBranch } from "@/views/root-compose-thread-environment";
 
@@ -51,8 +52,18 @@ export function newThreadEnvironmentArgsToSeed(
           : null,
     };
   }
-  // Unmanaged. `path` has no picker control — the composer always submits
-  // `path: null` — so it is not represented here.
+  // Unmanaged with an explicit path is a discovered-worktree selection. It
+  // carries no branch intent by construction; a path plus branch combination
+  // has no picker representation, so the composer falls back to its default.
+  if (workspace.path !== null) {
+    if (workspace.branch !== undefined) {
+      return null;
+    }
+    return {
+      selectionValue: encodeWorktreePathValue(hostId, workspace.path),
+      branch: null,
+    };
+  }
   return {
     selectionValue: encodeHostValue(hostId, "local"),
     branch:
