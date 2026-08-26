@@ -91,7 +91,11 @@ export interface EnvironmentPickerUIProps {
     hostId: string | null,
   ) => void;
   onSelectHost?: (hostId: string) => void;
+  reuseDisabled?: boolean;
+  onSelectReuse?: () => void;
 }
+
+export const REUSE_DISABLED_REASON = "No existing environments found.";
 
 export const PROVIDER_INPUTS_CONTROL_MISSING_REASON =
   "Needs its plugin's control";
@@ -186,6 +190,8 @@ export function EnvironmentPickerUI({
   multiMachinePickerEnabled = false,
   onSelectProvider,
   onSelectHost,
+  reuseDisabled = false,
+  onSelectReuse,
 }: EnvironmentPickerUIProps) {
   const [uncontrolledOpen, setUncontrolledOpen] = useState(
     defaultOpen ?? false,
@@ -281,7 +287,7 @@ export function EnvironmentPickerUI({
         icon: "AlertTriangle" as const,
       };
     }
-    if (parsed?.type === "reuse") {
+    if (parsed?.type === "reuse" || parsed?.type === "worktree-path") {
       return {
         modeLabel: "Reuse",
         compactModeLabel: "Reuse",
@@ -517,6 +523,25 @@ export function EnvironmentPickerUI({
                   />
                 </>
               )}
+              {!projectless && onSelectReuse ? (
+                <>
+                  <CommandSeparator className="mx-0 shrink-0" />
+                  <CommandGroup className="shrink-0">
+                    <EnvironmentMenuItem
+                      value="reuse"
+                      label="Existing environment"
+                      description={reuseDisabled ? REUSE_DISABLED_REASON : undefined}
+                      icon={REUSE_ENVIRONMENT_ICON_NAME}
+                      selected={parsed?.type === "reuse" || parsed?.type === "worktree-path"}
+                      disabled={reuseDisabled}
+                      onSelect={() => {
+                        onSelectReuse();
+                        setOpen(false);
+                      }}
+                    />
+                  </CommandGroup>
+                </>
+              ) : null}
             </CommandList>
           </Command>
         )}

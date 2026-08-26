@@ -3,16 +3,26 @@ import {
   type ProjectSource,
   type ThreadListEntry,
 } from "@bb/domain";
-import type { SystemEnvironmentProvider } from "@bb/server-contract";
+import type {
+  ProjectWorktree,
+  ProjectWorktreeFailure,
+  SystemEnvironmentProvider,
+} from "@bb/server-contract";
 import {
   PERSONAL_WORKSPACE_ENVIRONMENT_PROVIDER_ID,
   PROJECT_CHECKOUT_ENVIRONMENT_PROVIDER_ID,
 } from "@bb/client-core";
 import {
   encodeProviderValue,
+  encodeReuseValue,
+  encodeWorktreePathValue,
   parseEnvironmentValue,
+  REUSE_VALUE_WITHOUT_ENVIRONMENT,
 } from "@/components/pickers/environment-picker-value";
-import type { ReuseThreadOption } from "@/components/pickers/ReuseEnvironmentPicker";
+import type {
+  ReuseDiscoveryFailure,
+  ReuseThreadOption,
+} from "@/components/pickers/ReuseEnvironmentPicker";
 import { getThreadDisplayTitle } from "@/lib/thread-title";
 
 interface ResolveRootComposeEffectiveEnvironmentValueArgs {
@@ -24,6 +34,7 @@ interface ResolveRootComposeEffectiveEnvironmentValueArgs {
   projectSources: readonly ProjectSource[];
   reuseThreadOptions: readonly ReuseThreadOption[];
   reuseThreadOptionsLoading: boolean;
+  hasReuseDiscoveryFailures: boolean;
 }
 
 interface ResolveProjectlessEnvironmentValueArgs {
@@ -56,68 +67,156 @@ export function resolveHostEnvironmentProvider({
   );
 }
 
-export function buildReuseThreadOptions(
+interface ReuseThreadOptionsModel {
+  options: ReuseThreadOption[];
+  failures: ReuseDiscoveryFailure[];
+}
+
+interface BuildReuseThreadOptionsArgs {
+  threads: readonly ThreadListEntry[];
+  worktrees: readonly ProjectWorktree[];
+  failures: readonly ProjectWorktreeFailure[];
+  hostNameById: ReadonlyMap<string, string> | null;
+}
+
+type ThreadPreview = ReuseThreadOption["threads"][number];
+
+function threadPreviewsByEnvironmentId(
   threads: readonly ThreadListEntry[],
-  hostNameById: ReadonlyMap<string, string> | null = null,
-): ReuseThreadOption[] {
-  const threadsByEnvironmentId = new Map<string, ThreadListEntry[]>();
-  const branchByEnvironmentId = new Map<string, string | null>();
-  const nameByEnvironmentId = new Map<string, string | null>();
-  const pathByEnvironmentId = new Map<string, string | null>();
-  const providerIdByEnvironmentId = new Map<string, string | null>();
-  const hostIdByEnvironmentId = new Map<string, string | null>();
+): Map<string, ThreadPreview[]> {
+  const buckets = new Map<string, ThreadListEntry[]>();
   for (const thread of threads) {
     if (thread.environmentId === null) continue;
-    let bucket = threadsByEnvironmentId.get(thread.environmentId);
-    if (!bucket) {
-      bucket = [];
-      threadsByEnvironmentId.set(thread.environmentId, bucket);
-      branchByEnvironmentId.set(
-        thread.environmentId,
-        thread.environmentBranchName,
-      );
-      nameByEnvironmentId.set(thread.environmentId, thread.environmentName);
-      pathByEnvironmentId.set(thread.environmentId, thread.environmentPath);
-      providerIdByEnvironmentId.set(
-        thread.environmentId,
-        thread.environmentProviderId,
-      );
-      hostIdByEnvironmentId.set(thread.environmentId, thread.environmentHostId);
+    const bucket = buckets.get(thread.environmentId);
+    if (bucket) {
+      bucket.push(thread);
+    } else {
+      buckets.set(thread.environmentId, [thread]);
     }
-    bucket.push(thread);
   }
-  const options: ReuseThreadOption[] = [];
-  for (const [environmentId, bucket] of threadsByEnvironmentId) {
+  const previews = new Map<string, ThreadPreview[]>();
+  for (const [environmentId, bucket] of buckets) {
     bucket.sort(
       (left, right) => right.latestAttentionAt - left.latestAttentionAt,
     );
-    const hostId = hostIdByEnvironmentId.get(environmentId) ?? null;
-    options.push({
+    previews.set(
       environmentId,
-      branchName: branchByEnvironmentId.get(environmentId) ?? null,
-      name: nameByEnvironmentId.get(environmentId) ?? null,
-      path: pathByEnvironmentId.get(environmentId) ?? null,
-      environmentProviderId:
-        providerIdByEnvironmentId.get(environmentId) ?? null,
-      hostName:
-        hostNameById !== null && hostId !== null
-          ? (hostNameById.get(hostId) ?? null)
-          : null,
-      threads: bucket.map((thread) => ({
+      bucket.map((thread) => ({
         id: thread.id,
         title: getThreadDisplayTitle(thread),
       })),
+    );
+  }
+  return previews;
+}
+
+function discoveredWorktreeOption(
+  worktree: ProjectWorktree,
+  hostName: string | null,
+  threads: readonly ThreadPreview[],
+): ReuseThreadOption {
+  const { availability, checkout } = worktree;
+  return {
+    value:
+      worktree.environmentId !== null
+        ? encodeReuseValue(worktree.environmentId)
+        : availability.kind === "selectable"
+          ? encodeWorktreePathValue(worktree.hostId, availability.canonicalPath)
+          : null,
+    environmentId: worktree.environmentId,
+    branchName: checkout.kind === "branch" ? checkout.branchName : null,
+    name: worktree.environmentName,
+    path: worktree.path,
+    environmentProviderId: worktree.environmentProviderId,
+    hostId: worktree.hostId,
+    hostName,
+    worktree: {
+      detachedHeadSha: checkout.kind === "detached" ? checkout.headSha : null,
+      lock: worktree.lock,
+      unavailableReason:
+        availability.kind === "selectable" ? null : availability.reason,
+      userManaged: worktree.ownership === "user-managed",
+    },
+    threads,
+  };
+}
+
+function reuseOptionSortLabel(option: ReuseThreadOption): string {
+  return (
+    option.name ??
+    option.branchName ??
+    option.worktree?.detachedHeadSha ??
+    option.path ??
+    option.environmentId ??
+    ""
+  );
+}
+
+export function buildReuseThreadOptions({
+  threads,
+  worktrees,
+  failures,
+  hostNameById,
+}: BuildReuseThreadOptionsArgs): ReuseThreadOptionsModel {
+  const hostName = (hostId: string | null): string | null =>
+    hostNameById === null || hostId === null
+      ? null
+      : (hostNameById.get(hostId) ?? null);
+  const previews = threadPreviewsByEnvironmentId(threads);
+  const optionsByEnvironmentId = new Map<string, ReuseThreadOption>();
+  for (const thread of threads) {
+    const environmentId = thread.environmentId;
+    if (environmentId === null || optionsByEnvironmentId.has(environmentId)) {
+      continue;
+    }
+    optionsByEnvironmentId.set(environmentId, {
+      value: encodeReuseValue(environmentId),
+      environmentId,
+      branchName: thread.environmentBranchName,
+      name: thread.environmentName,
+      path: thread.environmentPath,
+      environmentProviderId: thread.environmentProviderId,
+      hostId: thread.environmentHostId,
+      hostName: hostName(thread.environmentHostId),
+      worktree: null,
+      threads: previews.get(environmentId) ?? [],
     });
   }
-  options.sort((left, right) => {
-    const leftLabel = left.name ?? left.branchName;
-    const rightLabel = right.name ?? right.branchName;
-    if (leftLabel && rightLabel) {
-      return leftLabel.localeCompare(rightLabel);
+  const discovered: ReuseThreadOption[] = [];
+  for (const worktree of worktrees) {
+    const option = discoveredWorktreeOption(
+      worktree,
+      hostName(worktree.hostId),
+      worktree.environmentId === null
+        ? []
+        : (previews.get(worktree.environmentId) ?? []),
+    );
+    if (worktree.environmentId === null) {
+      discovered.push(option);
+    } else {
+      optionsByEnvironmentId.set(worktree.environmentId, option);
     }
-    return left.environmentId.localeCompare(right.environmentId);
+  }
+  const options = [...optionsByEnvironmentId.values(), ...discovered];
+  options.sort((left, right) => {
+    const environmentRank =
+      Number(right.environmentId !== null) -
+      Number(left.environmentId !== null);
+    if (environmentRank !== 0) return environmentRank;
+    const labelCompare = reuseOptionSortLabel(left).localeCompare(
+      reuseOptionSortLabel(right),
+    );
+    if (labelCompare !== 0) return labelCompare;
+    return (left.path ?? "").localeCompare(right.path ?? "");
   });
-  return options;
+  return {
+    options,
+    failures: failures.map((failure) => ({
+      hostId: failure.hostId,
+      hostName: hostName(failure.hostId),
+      message: failure.message,
+    })),
+  };
 }
 
 export function resolveProjectlessDefaultEnvironmentProvider(
@@ -181,6 +280,7 @@ export function resolveRootComposeEffectiveEnvironmentValue({
   projectSources,
   reuseThreadOptions,
   reuseThreadOptionsLoading,
+  hasReuseDiscoveryFailures,
 }: ResolveRootComposeEffectiveEnvironmentValueArgs): string {
   const parsedSelection = parseEnvironmentValue(environmentSelectionValue);
 
@@ -216,23 +316,36 @@ export function resolveRootComposeEffectiveEnvironmentValue({
     providerRegistered(PROJECT_CHECKOUT_ENVIRONMENT_PROVIDER_ID)
       ? encodeProviderValue(PROJECT_CHECKOUT_ENVIRONMENT_PROVIDER_ID)
       : "";
+  const reuseListed = (): boolean =>
+    reuseThreadOptions.some(
+      (option) =>
+        option.value !== null && option.value === environmentSelectionValue,
+    );
 
   if (parsedSelection?.type === "reuse") {
     if (parsedSelection.environmentId === null) {
-      return reuseThreadOptionsLoading || reuseThreadOptions.length > 0
+      return reuseThreadOptionsLoading ||
+        reuseThreadOptions.length > 0 ||
+        hasReuseDiscoveryFailures
         ? environmentSelectionValue
         : fallbackValue;
     }
-
-    if (reuseThreadOptionsLoading) {
+    if (reuseThreadOptionsLoading || reuseListed()) {
       return environmentSelectionValue;
     }
+    return REUSE_VALUE_WITHOUT_ENVIRONMENT;
+  }
 
-    return reuseThreadOptions.some(
-      (option) => option.environmentId === parsedSelection.environmentId,
-    )
+  if (parsedSelection?.type === "worktree-path") {
+    if (
+      !providerRegistered(PROJECT_CHECKOUT_ENVIRONMENT_PROVIDER_ID) ||
+      !knownHostIds.has(parsedSelection.hostId)
+    ) {
+      return fallbackValue;
+    }
+    return reuseThreadOptionsLoading || reuseListed()
       ? environmentSelectionValue
-      : fallbackValue;
+      : REUSE_VALUE_WITHOUT_ENVIRONMENT;
   }
 
   if (

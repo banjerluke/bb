@@ -26,12 +26,15 @@ const provider: SystemEnvironmentProvider = {
 };
 
 const option: ReuseThreadOption = {
+  value: "reuse:env_1",
   environmentId: "env_1",
   branchName: "main",
   name: null,
   path: "/workspace/bb",
   environmentProviderId: "project-checkout",
+  hostId: "host_1",
   hostName: "Michael-M4",
+  worktree: null,
   threads: [],
 };
 
@@ -41,6 +44,28 @@ describe("reuseThreadOptionDisplay", () => {
       label: "main",
       secondaryText: "Michael-M4",
     });
+  });
+
+  it("labels a detached discovered worktree by its short commit", () => {
+    expect(
+      reuseThreadOptionDisplay(
+        {
+          ...option,
+          value: "path:host_1:%2Fworktrees%2Fdetached",
+          environmentId: null,
+          branchName: null,
+          environmentProviderId: null,
+          path: "/worktrees/detached",
+          worktree: {
+            detachedHeadSha: "0123456789abcdef",
+            lock: null,
+            unavailableReason: null,
+            userManaged: true,
+          },
+        },
+        [provider],
+      ),
+    ).toMatchObject({ label: "Detached at 0123456" });
   });
 
   it("omits secondary text when the machine is unambiguous", () => {
