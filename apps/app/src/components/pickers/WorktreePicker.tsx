@@ -151,13 +151,18 @@ export function WorktreePicker({
       </DropdownMenuTrigger>
       <DropdownMenuContent
         align="start"
-        className={cn(OPTION_MENU_CONTENT_CLASS_NAME, "max-w-96")}
+        className={cn(
+          OPTION_MENU_CONTENT_CLASS_NAME,
+          "max-h-[var(--radix-dropdown-menu-content-available-height)] max-w-96 overflow-x-hidden overflow-y-auto overscroll-contain",
+        )}
         mobileTitle="Worktree"
       >
         <DropdownMenuLabel>Existing worktrees</DropdownMenuLabel>
         {isEmpty ? (
           <div className="px-2 py-2 text-xs text-muted-foreground">
-            {loading ? "Discovering worktrees…" : "No existing worktrees found."}
+            {loading
+              ? "Discovering worktrees…"
+              : "No existing worktrees found."}
           </div>
         ) : (
           <>
@@ -172,9 +177,7 @@ export function WorktreePicker({
                   <WorktreeMenuItem
                     key={JSON.stringify([option.hostId, option.displayPath])}
                     option={option}
-                    isSelected={
-                      option.value !== null && option.value === value
-                    }
+                    isSelected={option.value !== null && option.value === value}
                     onSelect={onChange}
                   />
                 ))}
@@ -303,7 +306,10 @@ function WorktreeFailureRow({ failure, onRetry }: WorktreeFailureRowProps) {
     <div className="flex items-center gap-2 px-2 py-2 text-xs text-muted-foreground">
       <Icon
         name="AlertTriangle"
-        className={cn("shrink-0", COARSE_POINTER_COMPACT_ICON_SIZE_SHRINK_CLASS)}
+        className={cn(
+          "shrink-0",
+          COARSE_POINTER_COMPACT_ICON_SIZE_SHRINK_CLASS,
+        )}
       />
       <span className="min-w-0 flex-1 truncate">
         {failure.hostName !== null
