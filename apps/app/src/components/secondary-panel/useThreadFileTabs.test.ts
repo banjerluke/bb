@@ -1403,8 +1403,18 @@ describe("useThreadFileTabs file opener diversion", () => {
     });
   });
 
-  it("downloads workspace, host, and thread-storage files without opening tabs", () => {
+  it("downloads workspace, host, and thread-storage files without opening tabs", async () => {
     const downloadUrls: string[] = [];
+    const fetchMock = vi.fn((_input: RequestInfo | URL) =>
+      Promise.resolve(new Response("%PDF", { status: 200 })),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+    const createObjectUrl = vi
+      .spyOn(URL, "createObjectURL")
+      .mockReturnValue("blob:download");
+    const revokeObjectUrl = vi
+      .spyOn(URL, "revokeObjectURL")
+      .mockImplementation(() => {});
     const click = vi
       .spyOn(HTMLAnchorElement.prototype, "click")
       .mockImplementation(function (this: HTMLAnchorElement) {
@@ -1455,8 +1465,8 @@ describe("useThreadFileTabs file opener diversion", () => {
     );
 
     expect(
-      downloadUrls.map((url) => {
-        const parsed = new URL(url);
+      fetchMock.mock.calls.map(([url]) => {
+        const parsed = new URL(String(url), window.location.origin);
         return `${parsed.pathname}?${parsed.searchParams.toString()}`;
       }),
     ).toEqual([
@@ -1464,13 +1474,32 @@ describe("useThreadFileTabs file opener diversion", () => {
       "/api/v1/threads/thr_download/host-files/content?disposition=attachment&path=%2Ftmp%2Fhost.pdf",
       "/api/v1/threads/thr_download/thread-storage/content?disposition=attachment&path=reports%2Fstorage.pdf",
     ]);
+    await waitFor(() => expect(downloadUrls).toHaveLength(3));
+    expect(downloadUrls).toEqual([
+      "blob:download",
+      "blob:download",
+      "blob:download",
+    ]);
     expect(result.current.orderedSecondaryFileTabs).toEqual([]);
     expect(document.querySelector("a[download]")).toBeNull();
     click.mockRestore();
+    createObjectUrl.mockRestore();
+    revokeObjectUrl.mockRestore();
+    vi.unstubAllGlobals();
   });
 
-  it("uses the saved PDF download opener while preserving explicit preview", () => {
+  it("uses the saved PDF download opener while preserving explicit preview", async () => {
     const downloadUrls: string[] = [];
+    const fetchMock = vi.fn((_input: RequestInfo | URL) =>
+      Promise.resolve(new Response("%PDF", { status: 200 })),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+    const createObjectUrl = vi
+      .spyOn(URL, "createObjectURL")
+      .mockReturnValue("blob:download-preference");
+    const revokeObjectUrl = vi
+      .spyOn(URL, "revokeObjectURL")
+      .mockImplementation(() => {});
     const click = vi
       .spyOn(HTMLAnchorElement.prototype, "click")
       .mockImplementation(function (this: HTMLAnchorElement) {
@@ -1505,7 +1534,7 @@ describe("useThreadFileTabs file opener diversion", () => {
         },
       }),
     );
-    expect(downloadUrls).toHaveLength(1);
+    await waitFor(() => expect(downloadUrls).toHaveLength(1));
     expect(result.current.tabs.orderedSecondaryFileTabs).toEqual([]);
 
     act(() =>
@@ -1527,6 +1556,9 @@ describe("useThreadFileTabs file opener diversion", () => {
       "reports/preview.pdf",
     );
     click.mockRestore();
+    createObjectUrl.mockRestore();
+    revokeObjectUrl.mockRestore();
+    vi.unstubAllGlobals();
   });
 });
 
