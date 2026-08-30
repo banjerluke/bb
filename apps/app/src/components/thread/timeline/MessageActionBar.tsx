@@ -11,6 +11,10 @@ import { flushSync } from "react-dom";
 import * as PopoverPrimitive from "@radix-ui/react-popover";
 import { CopyButton } from "../../ui/copy-button.js";
 import { Icon } from "@bb/shared-ui/icon";
+import {
+  HOVER_NONE_QUERY,
+  useMediaQuery,
+} from "@bb/shared-ui/hooks/use-media-query";
 import { usePointerCoarse } from "@bb/shared-ui/hooks/use-pointer-coarse";
 import { preventOverlayTriggerSelection } from "@bb/shared-ui/overlay-trigger";
 import { copyToClipboardWithToast } from "@/lib/clipboard";
@@ -55,7 +59,7 @@ function PluginActionIcon({
 interface MessageActionBarProps {
   messageText: string;
   alignment: "start" | "end";
-  mobileActionDisplay: "inline" | "overflow";
+  touchActionDisplay: "inline" | "overflow";
   addToChatAttachments?: readonly PromptDraftAttachment[];
   onAddToChat?: (
     text: string,
@@ -177,17 +181,17 @@ export const MessageColumnWidthContext =
 const resolveMessageColumn = (node: HTMLElement): Element | null =>
   node.closest("[data-message-column]");
 
-interface CoarsePointerMessageOverflowPopoverProps {
+interface TouchMessageOverflowPopoverProps {
   actions: readonly MessageOverflowAction[];
   alignment: MessageActionBarProps["alignment"];
   triggerClassName?: string;
 }
 
-function CoarsePointerMessageOverflowPopover({
+function TouchMessageOverflowPopover({
   actions,
   alignment,
   triggerClassName,
-}: CoarsePointerMessageOverflowPopoverProps) {
+}: TouchMessageOverflowPopoverProps) {
   const [open, setOpen] = useState(false);
   const [copied, setCopied] = useState(false);
   const portalScopeProps = usePortalScopeProps();
@@ -206,10 +210,7 @@ function CoarsePointerMessageOverflowPopover({
       <PopoverPrimitive.Trigger asChild>
         <button
           type="button"
-          className={cn(
-            COARSE_POINTER_OVERFLOW_TRIGGER_CLASS,
-            triggerClassName,
-          )}
+          className={cn(TOUCH_OVERFLOW_TRIGGER_CLASS, triggerClassName)}
           aria-label="Message actions"
           data-no-sidebar-swipe=""
           onMouseDown={preventOverlayTriggerSelection}
@@ -230,7 +231,7 @@ function CoarsePointerMessageOverflowPopover({
           align={alignment === "end" ? "end" : "start"}
           sideOffset={6}
           collisionPadding={8}
-          className={COARSE_POINTER_OVERFLOW_CONTENT_CLASS}
+          className={TOUCH_OVERFLOW_CONTENT_CLASS}
           onOpenAutoFocus={(event) => event.preventDefault()}
           onCloseAutoFocus={(event) => event.preventDefault()}
         >
@@ -238,7 +239,7 @@ function CoarsePointerMessageOverflowPopover({
             <button
               key={action.key ?? action.label}
               type="button"
-              className={COARSE_POINTER_OVERFLOW_ITEM_CLASS}
+              className={TOUCH_OVERFLOW_ITEM_CLASS}
               disabled={action.disabled}
               onClick={() => {
                 if (action.kind === "copy") {
@@ -277,16 +278,17 @@ const ACTION_BUTTON_CLASS =
   "inline-flex size-5 cursor-pointer items-center justify-center text-muted-foreground hover:text-foreground disabled:pointer-events-none disabled:opacity-40";
 const HOVER_REVEAL_CLASS =
   "opacity-0 transition-opacity group-hover/message:opacity-100 group-focus-within/message:opacity-100";
-const COARSE_POINTER_INLINE_ACTION_CLASS =
-  "pointer-coarse:size-7 pointer-coarse:opacity-100 pointer-coarse:disabled:opacity-40 pointer-coarse:[&_svg]:size-4";
-const COARSE_POINTER_OVERFLOW_ACTION_CLASS = "pointer-coarse:hidden";
-const COARSE_POINTER_OVERFLOW_TRIGGER_CLASS =
-  "hidden size-7 cursor-pointer items-center justify-center rounded-md text-muted-foreground hover:text-foreground data-[state=open]:bg-state-active data-[state=open]:text-foreground pointer-coarse:inline-flex pointer-coarse:[&_svg]:size-4";
+const TOUCH_INLINE_ACTION_CLASS =
+  "pointer-coarse:size-7 pointer-coarse:opacity-100 pointer-coarse:disabled:opacity-40 pointer-coarse:[&_svg]:size-4 [@media(hover:none)]:size-7 [@media(hover:none)]:opacity-100 [@media(hover:none)]:disabled:opacity-40 [@media(hover:none)]:[&_svg]:size-4";
+const TOUCH_OVERFLOW_ACTION_CLASS =
+  "pointer-coarse:hidden [@media(hover:none)]:hidden";
+const TOUCH_OVERFLOW_TRIGGER_CLASS =
+  "hidden size-7 cursor-pointer items-center justify-center rounded-md text-muted-foreground hover:text-foreground data-[state=open]:bg-state-active data-[state=open]:text-foreground pointer-coarse:inline-flex pointer-coarse:[&_svg]:size-4 [@media(hover:none)]:inline-flex [@media(hover:none)]:[&_svg]:size-4";
 const ACTION_TOOLTIP_SIDE = "bottom";
 const MENU_CONTENT_WIDTH_CLASS = "max-w-[min(16rem,calc(100vw-1rem))]";
-const COARSE_POINTER_OVERFLOW_CONTENT_CLASS =
+const TOUCH_OVERFLOW_CONTENT_CLASS =
   "z-50 flex max-h-[50dvh] w-max min-w-32 max-w-[min(15rem,calc(100vw-1.5rem))] flex-col gap-0.5 overflow-y-auto rounded-md border bg-popover p-0.5 text-popover-foreground shadow-md outline-none data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95";
-const COARSE_POINTER_OVERFLOW_ITEM_CLASS =
+const TOUCH_OVERFLOW_ITEM_CLASS =
   "flex min-h-8 w-full cursor-pointer items-center gap-2 rounded px-2 py-1 text-left text-xs text-foreground transition-colors hover:bg-surface-recessed focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring active:bg-state-active disabled:pointer-events-none disabled:opacity-40 select-none";
 
 const ACTION_ROW_CLASS =
@@ -382,7 +384,7 @@ function MessageActionMenuItems({
 export function MessageActionBar({
   messageText,
   alignment,
-  mobileActionDisplay,
+  touchActionDisplay,
   addToChatAttachments = [],
   onAddToChat,
   onEdit,
@@ -392,17 +394,16 @@ export function MessageActionBar({
   pluginActions = [],
 }: MessageActionBarProps) {
   const isPointerCoarse = usePointerCoarse();
+  const cannotHover = useMediaQuery(HOVER_NONE_QUERY);
   const hasCopy = messageText.length > 0;
   const hasAddToChat =
     (hasCopy || addToChatAttachments.length > 0) && onAddToChat !== undefined;
   const [collisionBoundary, setCollisionBoundary] = useState<
     HTMLElement | undefined
   >();
-  const useCoarsePointerActionSurface = isPointerCoarse;
+  const useTouchActionSurface = isPointerCoarse || cannotHover;
   const { measureRef, width: availableWidth } = useMeasuredWidth({
-    enabled: !(
-      useCoarsePointerActionSurface && mobileActionDisplay === "overflow"
-    ),
+    enabled: !(useTouchActionSurface && touchActionDisplay === "overflow"),
   });
   const sharedColumnWidth = useContext(MessageColumnWidthContext);
   const { measureRef: measureColumnRef, width: ownColumnWidth } =
@@ -457,10 +458,10 @@ export function MessageActionBar({
     const timeoutId = window.setTimeout(() => setCopiedFromRow(false), 2000);
     return () => window.clearTimeout(timeoutId);
   }, [copiedFromRow]);
-  const coarsePointerDirectActionClass =
-    mobileActionDisplay === "inline"
-      ? COARSE_POINTER_INLINE_ACTION_CLASS
-      : COARSE_POINTER_OVERFLOW_ACTION_CLASS;
+  const touchDirectActionClass =
+    touchActionDisplay === "inline"
+      ? TOUCH_INLINE_ACTION_CLASS
+      : TOUCH_OVERFLOW_ACTION_CLASS;
   const handleAddToChat = useCallback(() => {
     if (!onAddToChat) return;
     if (addToChatAttachments.length > 0) {
@@ -546,9 +547,9 @@ export function MessageActionBar({
     alignment === "end" && BUBBLE_ALIGN_INSET_CLASS,
   );
 
-  if (useCoarsePointerActionSurface) {
+  if (useTouchActionSurface) {
     const layout =
-      mobileActionDisplay === "overflow"
+      touchActionDisplay === "overflow"
         ? { inlineCount: 0, overflowCount: actions.length }
         : computeMessageActionRowLayout({
             actionCount: actions.length,
@@ -573,7 +574,7 @@ export function MessageActionBar({
             )}
             onClick={handleExpandedRowClick}
           >
-            <CoarsePointerInlineActions
+            <TouchInlineActions
               actions={actions}
               onCopied={() => setCopiedFromRow(true)}
             />
@@ -585,7 +586,7 @@ export function MessageActionBar({
       <div ref={slotRef} className={cn(slotClass, "h-7")}>
         <div className={rowClass}>
           {layout.inlineCount > 0 ? (
-            <CoarsePointerInlineActions
+            <TouchInlineActions
               actions={actions.slice(0, layout.inlineCount)}
             />
           ) : null}
@@ -594,7 +595,7 @@ export function MessageActionBar({
               <button
                 type="button"
                 className={cn(
-                  COARSE_POINTER_OVERFLOW_TRIGGER_CLASS,
+                  TOUCH_OVERFLOW_TRIGGER_CLASS,
                   layout.inlineCount > 0 && OVERFLOW_TRIGGER_TIGHTEN_CLASS,
                 )}
                 aria-label="Message actions"
@@ -611,7 +612,7 @@ export function MessageActionBar({
                 />
               </button>
             ) : (
-              <CoarsePointerMessageOverflowPopover
+              <TouchMessageOverflowPopover
                 actions={actions.slice(layout.inlineCount)}
                 alignment={alignment}
                 triggerClassName={
@@ -645,7 +646,7 @@ export function MessageActionBar({
             <DesktopMessageAction
               key={action.key ?? action.label}
               action={action}
-              className={cn(HOVER_REVEAL_CLASS, coarsePointerDirectActionClass)}
+              className={cn(HOVER_REVEAL_CLASS, touchDirectActionClass)}
               collisionBoundary={collisionBoundary}
             />
           ))}
@@ -657,7 +658,7 @@ export function MessageActionBar({
                   className={cn(
                     ACTION_BUTTON_CLASS,
                     HOVER_REVEAL_CLASS,
-                    coarsePointerDirectActionClass,
+                    touchDirectActionClass,
                     layout.inlineCount > 0 && OVERFLOW_TRIGGER_TIGHTEN_CLASS,
                     "data-[state=open]:text-foreground data-[state=open]:opacity-100",
                   )}
@@ -677,12 +678,12 @@ export function MessageActionBar({
               </DropdownMenuContent>
             </DropdownMenu>
           ) : null}
-          {mobileActionDisplay === "overflow" ? (
+          {touchActionDisplay === "overflow" ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <button
                   type="button"
-                  className={COARSE_POINTER_OVERFLOW_TRIGGER_CLASS}
+                  className={TOUCH_OVERFLOW_TRIGGER_CLASS}
                   aria-label="Message actions"
                   data-no-sidebar-swipe=""
                 >
@@ -704,7 +705,7 @@ export function MessageActionBar({
   );
 }
 
-function CoarsePointerInlineActions({
+function TouchInlineActions({
   actions,
   onCopied,
 }: {
@@ -720,7 +721,7 @@ function CoarsePointerInlineActions({
           className={cn(
             ACTION_BUTTON_CLASS,
             HOVER_REVEAL_CLASS,
-            COARSE_POINTER_INLINE_ACTION_CLASS,
+            TOUCH_INLINE_ACTION_CLASS,
           )}
           onClick={() => {
             void copyToClipboardWithToast(action.copyText ?? "", {
@@ -739,7 +740,7 @@ function CoarsePointerInlineActions({
           key={action.key ?? action.label}
           text={action.copyText ?? ""}
           label={action.label}
-          className={cn(HOVER_REVEAL_CLASS, COARSE_POINTER_INLINE_ACTION_CLASS)}
+          className={cn(HOVER_REVEAL_CLASS, TOUCH_INLINE_ACTION_CLASS)}
         />
       )
     ) : (
@@ -749,7 +750,7 @@ function CoarsePointerInlineActions({
         className={cn(
           ACTION_BUTTON_CLASS,
           HOVER_REVEAL_CLASS,
-          COARSE_POINTER_INLINE_ACTION_CLASS,
+          TOUCH_INLINE_ACTION_CLASS,
         )}
         onClick={action.onSelect}
         disabled={action.disabled}
