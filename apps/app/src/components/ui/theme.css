@@ -304,16 +304,19 @@
 
   @media (min-width: 768px) and (hover: none),
     (min-width: 768px) and (pointer: coarse) {
-    .bb-sidebar-hover-actions-row .bb-sidebar-hover-actions {
+    .bb-sidebar-hover-actions-row.bb-sidebar-selected-row
+      .bb-sidebar-hover-actions {
       pointer-events: auto;
       opacity: 1;
     }
 
-    .bb-sidebar-hover-actions-row .bb-sidebar-hover-actions-inset {
-      padding-right: 1.5rem;
+    .bb-sidebar-hover-actions-row.bb-sidebar-selected-row
+      .bb-sidebar-hover-actions-inset {
+      padding-right: calc(var(--spacing) * 7.5);
     }
 
-    .bb-sidebar-hover-actions-row .bb-sidebar-hover-actions-fade {
+    .bb-sidebar-hover-actions-row.bb-sidebar-selected-row
+      .bb-sidebar-hover-actions-fade {
       opacity: 0;
     }
   }
