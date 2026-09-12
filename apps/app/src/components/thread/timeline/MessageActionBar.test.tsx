@@ -14,6 +14,7 @@ import {
   setPluginLogoUrls,
   resetPluginLogoStoreForTest,
 } from "@/lib/plugin-logos";
+import * as clipboard from "@/lib/clipboard";
 import { COMPACT_VIEWPORT_QUERY } from "@bb/shared-ui/hooks/use-compact-viewport";
 import { HOVER_NONE_QUERY } from "@bb/shared-ui/hooks/use-media-query";
 import { POINTER_COARSE_QUERY } from "@bb/shared-ui/hooks/use-pointer-coarse";
@@ -343,6 +344,29 @@ describe("MessageActionBar", () => {
     );
 
     expect(screen.getByRole("button", { name: "Copy message" })).toBeTruthy();
+  });
+
+  it("passes image-only content to the tablet overflow copy action", async () => {
+    mockWideCoarsePointer();
+    const copy = vi
+      .spyOn(clipboard, "copyToClipboardWithToast")
+      .mockResolvedValue(true);
+    render(
+      <MessageActionBar
+        messageText=""
+        copyImageUrl="/attachments/screenshot.png"
+        alignment="end"
+        mobileActionDisplay="overflow"
+      />,
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Message actions" }));
+    fireEvent.click(screen.getByRole("button", { name: "Copy message" }));
+    await waitFor(() =>
+      expect(copy).toHaveBeenCalledWith(
+        "",
+        expect.objectContaining({ imageUrl: "/attachments/screenshot.png" }),
+      ),
+    );
   });
 
   it("omits the send-to-main action when no handler is supplied", () => {
