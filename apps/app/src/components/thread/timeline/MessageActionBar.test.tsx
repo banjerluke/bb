@@ -334,7 +334,7 @@ describe("MessageActionBar", () => {
         messageText=""
         copyImageUrl="/attachments/screenshot.png"
         alignment="end"
-        mobileActionDisplay="overflow"
+        touchActionDisplay="overflow"
       />,
     );
 
