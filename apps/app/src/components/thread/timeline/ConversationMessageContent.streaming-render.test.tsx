@@ -62,7 +62,7 @@ function assistant(
               turnId="turn_stream"
               streaming={streaming}
               showActions={showActions}
-              touchActionDisplay="inline"
+              mobileActionDisplay="inline"
               onOpenLocalFileLink={onOpenLocalFileLink}
               text={text}
             />

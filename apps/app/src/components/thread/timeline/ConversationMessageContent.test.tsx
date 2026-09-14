@@ -44,7 +44,7 @@ describe("ConversationMessageContent assistant images", () => {
             threadId="thr_image"
             turnId="turn_image"
             showActions={false}
-            touchActionDisplay="overflow"
+            mobileActionDisplay="overflow"
             streaming={false}
             text="![Generated diagram](/workspace/output/diagram.png)"
           />
@@ -131,7 +131,7 @@ describe("ConversationMessageContent assistant thread mentions", () => {
                 threadId="thr_parent"
                 turnId="turn_spawned"
                 showActions={false}
-                touchActionDisplay="overflow"
+                mobileActionDisplay="overflow"
                 streaming={false}
                 text="Spawned and parented: @thread:thr_xpxxt2ipz8"
               />

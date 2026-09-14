@@ -86,7 +86,7 @@ interface ConversationMessageContentBaseProps {
 
 interface ConversationMessageContentUserProps extends ConversationMessageContentBaseProps {
   role: "user";
-  touchActionDisplay?: "inline" | "overflow";
+  mobileActionDisplay?: "inline" | "overflow";
   originKind: ThreadOriginKind | null;
   initiator: TimelineUserConversationRow["initiator"];
   mentions: readonly PromptTextMention[];
@@ -137,7 +137,7 @@ interface ConversationMessageContentAssistantProps
   forkDisabled?: boolean;
   onSelectProse?: (selection: MessageProseSelection | null) => void;
   showActions: boolean;
-  touchActionDisplay: "inline" | "overflow";
+  mobileActionDisplay: "inline" | "overflow";
   streaming: boolean;
   workspaceRootPath?: string;
 }
@@ -153,7 +153,7 @@ interface UserConversationMessageProps {
   pluginActions?: readonly ThreadTimelinePluginMessageAction[];
   initiator: TimelineUserConversationRow["initiator"];
   mentions: readonly PromptTextMention[];
-  touchActionDisplay: "inline" | "overflow";
+  mobileActionDisplay: "inline" | "overflow";
   onAddToChat?: ThreadTimelineAddToChatHandler;
   onEdit?: () => void;
   onOpenLink?: ThreadTimelineLinkHandler;
@@ -188,7 +188,7 @@ interface AssistantConversationMessageProps extends AssistantMessageRowIdentity 
   onOpenPluginPanel?: MarkdownMessageDirectives["openThreadPanel"];
   projectId?: string;
   showActions: boolean;
-  touchActionDisplay: "inline" | "overflow";
+  mobileActionDisplay: "inline" | "overflow";
   streaming: boolean;
   text: string;
   workspaceRootPath?: string;
@@ -333,7 +333,7 @@ function UserConversationMessage({
   originKind,
   initiator,
   mentions,
-  touchActionDisplay,
+  mobileActionDisplay,
   onAddToChat,
   onEdit,
   onOpenLink,
@@ -454,7 +454,7 @@ function UserConversationMessage({
           <MessageActionBar
             messageText={messageText}
             alignment="end"
-            touchActionDisplay={touchActionDisplay}
+            mobileActionDisplay={mobileActionDisplay}
             addToChatAttachments={addToChatAttachments}
             copyImageUrl={attachmentItems.imageItems[0]?.src}
             onAddToChat={onAddToChat}
@@ -482,7 +482,7 @@ function AssistantConversationMessage({
   pluginActions,
   projectId,
   showActions,
-  touchActionDisplay,
+  mobileActionDisplay,
   streaming,
   text,
   threadId,
@@ -607,7 +607,7 @@ function AssistantConversationMessage({
         <MessageActionBar
           messageText={text}
           alignment="start"
-          touchActionDisplay={touchActionDisplay}
+          mobileActionDisplay={mobileActionDisplay}
           addToChatAttachments={addToChatAttachments}
           copyImageUrl={attachmentItems.imageItems[0]?.src}
           onAddToChat={onAddToChat}
@@ -655,7 +655,7 @@ export function ConversationMessageContent(
         pluginActions={props.pluginActions}
         initiator={props.initiator}
         mentions={props.mentions}
-        touchActionDisplay={props.touchActionDisplay ?? "overflow"}
+        mobileActionDisplay={props.mobileActionDisplay ?? "overflow"}
         onAddToChat={props.onAddToChat}
         onEdit={props.onEdit}
         onOpenLink={props.onOpenLink}
@@ -694,7 +694,7 @@ export function ConversationMessageContent(
       onOpenPluginPanel={onOpenPluginPanel}
       projectId={projectId}
       showActions={props.showActions}
-      touchActionDisplay={props.touchActionDisplay}
+      mobileActionDisplay={props.mobileActionDisplay}
       streaming={props.streaming}
       text={text}
       threadId={props.threadId}

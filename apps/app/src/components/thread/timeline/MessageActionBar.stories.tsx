@@ -25,7 +25,7 @@ export function Overview() {
             <MessageActionBar
               messageText="An agent message you can fork or reply to."
               alignment="end"
-              touchActionDisplay="inline"
+              mobileActionDisplay="inline"
               onFork={noop}
             />
           </HoverRevealStage>
@@ -35,7 +35,7 @@ export function Overview() {
             <MessageActionBar
               messageText="A user message you can quote into the composer."
               alignment="end"
-              touchActionDisplay="overflow"
+              mobileActionDisplay="overflow"
               onAddToChat={noop}
             />
           </HoverRevealStage>
@@ -45,7 +45,7 @@ export function Overview() {
             <MessageActionBar
               messageText="Fork/Reply greyed when the thread can't fork."
               alignment="end"
-              touchActionDisplay="inline"
+              mobileActionDisplay="inline"
               onFork={noop}
               disabled
             />
@@ -59,7 +59,7 @@ export function Overview() {
             <MessageActionBar
               messageText="A side-chat reply you can hand back to the main thread."
               alignment="start"
-              touchActionDisplay="inline"
+              mobileActionDisplay="inline"
               onSendToMain={noop}
             />
           </HoverRevealStage>

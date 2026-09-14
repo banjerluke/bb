@@ -26,7 +26,7 @@ function renderAssistantMessage(text: string, streaming: boolean) {
           threadId="thr_stream"
           turnId="turn_stream"
           showActions={false}
-          touchActionDisplay="overflow"
+          mobileActionDisplay="overflow"
           streaming={streaming}
           text={text}
         />
@@ -47,7 +47,7 @@ function renderAssistantMessage(text: string, streaming: boolean) {
               threadId="thr_stream"
               turnId="turn_stream"
               showActions={false}
-              touchActionDisplay="overflow"
+              mobileActionDisplay="overflow"
               streaming={nextStreaming}
               text={nextText}
             />

@@ -130,7 +130,7 @@ describe("MessageActionBar", () => {
       <MessageActionBar
         messageText="An answer worth keeping."
         alignment="start"
-        touchActionDisplay="overflow"
+        mobileActionDisplay="overflow"
         onSendToMain={onSendToMain}
       />,
     );
@@ -147,7 +147,7 @@ describe("MessageActionBar", () => {
       <MessageActionBar
         messageText="An answer."
         alignment="start"
-        touchActionDisplay="inline"
+        mobileActionDisplay="inline"
         onAddToChat={vi.fn()}
         onFork={vi.fn()}
       />,
@@ -166,7 +166,7 @@ describe("MessageActionBar", () => {
       <MessageActionBar
         messageText="An answer."
         alignment="start"
-        touchActionDisplay="overflow"
+        mobileActionDisplay="overflow"
         onAddToChat={vi.fn()}
         onFork={vi.fn()}
       />,
@@ -189,7 +189,7 @@ describe("MessageActionBar", () => {
       <MessageActionBar
         messageText="An answer."
         alignment="start"
-        touchActionDisplay="inline"
+        mobileActionDisplay="inline"
         onAddToChat={vi.fn()}
         onFork={vi.fn()}
         pluginActions={[
@@ -223,7 +223,7 @@ describe("MessageActionBar", () => {
       <MessageActionBar
         messageText=""
         alignment="start"
-        touchActionDisplay="inline"
+        mobileActionDisplay="inline"
         pluginActions={[
           {
             key: "demo/summarize/1",
@@ -245,7 +245,7 @@ describe("MessageActionBar", () => {
       <MessageActionBar
         messageText="An answer."
         alignment="start"
-        touchActionDisplay="overflow"
+        mobileActionDisplay="overflow"
         onAddToChat={vi.fn()}
         pluginActions={[
           {
@@ -273,7 +273,7 @@ describe("MessageActionBar", () => {
       <MessageActionBar
         messageText="Quote this message."
         alignment="end"
-        touchActionDisplay="overflow"
+        mobileActionDisplay="overflow"
         onAddToChat={onAddToChat}
       />,
     );
@@ -295,7 +295,7 @@ describe("MessageActionBar", () => {
       <MessageActionBar
         messageText="Quote this message."
         alignment="end"
-        touchActionDisplay="overflow"
+        mobileActionDisplay="overflow"
         addToChatAttachments={[attachment]}
         onAddToChat={onAddToChat}
       />,
@@ -319,7 +319,7 @@ describe("MessageActionBar", () => {
       <MessageActionBar
         messageText=""
         alignment="end"
-        touchActionDisplay="overflow"
+        mobileActionDisplay="overflow"
         addToChatAttachments={[attachment]}
         onAddToChat={onAddToChat}
       />,
@@ -335,7 +335,7 @@ describe("MessageActionBar", () => {
         messageText=""
         copyImageUrl="/attachments/screenshot.png"
         alignment="end"
-        touchActionDisplay="overflow"
+        mobileActionDisplay="overflow"
       />,
     );
 
@@ -352,7 +352,7 @@ describe("MessageActionBar", () => {
         messageText=""
         copyImageUrl="/attachments/screenshot.png"
         alignment="end"
-        touchActionDisplay="overflow"
+        mobileActionDisplay="overflow"
       />,
     );
     fireEvent.click(screen.getByRole("button", { name: "Message actions" }));
@@ -370,7 +370,7 @@ describe("MessageActionBar", () => {
       <MessageActionBar
         messageText="An answer."
         alignment="start"
-        touchActionDisplay="overflow"
+        mobileActionDisplay="overflow"
       />,
     );
 
@@ -385,7 +385,7 @@ describe("MessageActionBar", () => {
       <MessageActionBar
         messageText="An answer."
         alignment="start"
-        touchActionDisplay="overflow"
+        mobileActionDisplay="overflow"
         onSendToMain={onSendToMain}
         disabled
       />,
@@ -404,7 +404,7 @@ describe("MessageActionBar", () => {
       <MessageActionBar
         messageText="Quote this message."
         alignment="end"
-        touchActionDisplay="overflow"
+        mobileActionDisplay="overflow"
         onAddToChat={onAddToChat}
       />,
     );
@@ -435,7 +435,7 @@ describe("MessageActionBar", () => {
       <MessageActionBar
         messageText="Copy this answer."
         alignment="start"
-        touchActionDisplay="overflow"
+        mobileActionDisplay="overflow"
       />,
     );
 
@@ -460,7 +460,7 @@ describe("MessageActionBar", () => {
       <MessageActionBar
         messageText="The latest answer."
         alignment="start"
-        touchActionDisplay="inline"
+        mobileActionDisplay="inline"
         onFork={onFork}
       />,
     );
@@ -477,7 +477,7 @@ describe("MessageActionBar", () => {
       <MessageActionBar
         messageText="The latest answer."
         alignment="start"
-        touchActionDisplay="inline"
+        mobileActionDisplay="inline"
         onAddToChat={vi.fn()}
         onFork={vi.fn()}
       />,
@@ -501,7 +501,7 @@ describe("MessageActionBar", () => {
       <MessageActionBar
         messageText="The latest answer."
         alignment="start"
-        touchActionDisplay="inline"
+        mobileActionDisplay="inline"
         onFork={vi.fn()}
       />,
     );
@@ -518,7 +518,7 @@ describe("MessageActionBar", () => {
       <MessageActionBar
         messageText="The latest answer."
         alignment="start"
-        touchActionDisplay="overflow"
+        mobileActionDisplay="overflow"
         onFork={vi.fn()}
       />,
     );
@@ -538,7 +538,7 @@ describe("MessageActionBar", () => {
       <MessageActionBar
         messageText="An answer."
         alignment="end"
-        touchActionDisplay="overflow"
+        mobileActionDisplay="overflow"
         onAddToChat={onAddToChat}
         onFork={vi.fn()}
       />,
@@ -565,7 +565,7 @@ describe("MessageActionBar", () => {
       <MessageActionBar
         messageText="An answer."
         alignment="end"
-        touchActionDisplay="overflow"
+        mobileActionDisplay="overflow"
         onAddToChat={vi.fn()}
         onFork={vi.fn()}
       />,
@@ -587,7 +587,7 @@ describe("MessageActionBar", () => {
       <MessageActionBar
         messageText="An answer."
         alignment="start"
-        touchActionDisplay="inline"
+        mobileActionDisplay="inline"
         onAddToChat={vi.fn()}
         onFork={onFork}
       />,
@@ -623,7 +623,7 @@ describe("MessageActionBar", () => {
         <MessageActionBar
           messageText="An answer."
           alignment="end"
-          touchActionDisplay="overflow"
+          mobileActionDisplay="overflow"
           onAddToChat={onAddToChat}
           onFork={vi.fn()}
         />
@@ -657,7 +657,7 @@ describe("MessageActionBar", () => {
         <MessageActionBar
           messageText="Copy this answer."
           alignment="end"
-          touchActionDisplay="overflow"
+          mobileActionDisplay="overflow"
           onAddToChat={vi.fn()}
           onFork={vi.fn()}
         />
@@ -687,7 +687,7 @@ describe("MessageActionBar", () => {
         <MessageActionBar
           messageText="An answer."
           alignment="end"
-          touchActionDisplay="overflow"
+          mobileActionDisplay="overflow"
           onAddToChat={vi.fn()}
           onFork={vi.fn()}
         />
@@ -712,7 +712,7 @@ describe("MessageActionBar", () => {
       <MessageActionBar
         messageText="The latest answer."
         alignment="start"
-        touchActionDisplay="inline"
+        mobileActionDisplay="inline"
         onFork={vi.fn()}
       />,
     );
@@ -744,7 +744,7 @@ describe("MessageActionBar observer budget", () => {
         <MessageActionBar
           messageText="An answer."
           alignment="start"
-          touchActionDisplay="overflow"
+          mobileActionDisplay="overflow"
           onAddToChat={vi.fn()}
         />
       </div>,
@@ -761,7 +761,7 @@ describe("MessageActionBar observer budget", () => {
         <MessageActionBar
           messageText="An answer."
           alignment="end"
-          touchActionDisplay="overflow"
+          mobileActionDisplay="overflow"
           onAddToChat={vi.fn()}
           onFork={vi.fn()}
         />
@@ -784,7 +784,7 @@ describe("MessageActionBar observer budget", () => {
         <MessageActionBar
           messageText="An answer."
           alignment="end"
-          touchActionDisplay="overflow"
+          mobileActionDisplay="overflow"
           onAddToChat={vi.fn()}
           onFork={vi.fn()}
         />
@@ -807,7 +807,7 @@ describe("MessageActionBar shared column width", () => {
         <MessageActionBar
           messageText="An answer."
           alignment={alignment}
-          touchActionDisplay="overflow"
+          mobileActionDisplay="overflow"
           onAddToChat={vi.fn()}
           onFork={vi.fn()}
         />
