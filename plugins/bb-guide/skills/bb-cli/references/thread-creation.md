@@ -140,7 +140,7 @@ download <project-id> <attachment-path> --client-file <path>` writes existing
   Partial discovery returns successful rows alongside per-machine failures.
   Start a thread in a discovered user-managed worktree with
   `bb thread spawn --environment-provider project-checkout --machine <id>
-  --environment-inputs '{"path":"<worktree-path>"}'`; BB never removes that
+--environment-inputs '{"path":"<worktree-path>"}'`; BB never removes that
   worktree or its branch. Rows with an `environmentId` are reused through
   `--environment <id>` instead.
 - `bb project history|reorder` exposes project prompt recall and sidebar order.
