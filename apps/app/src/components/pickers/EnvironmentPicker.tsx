@@ -537,9 +537,14 @@ export function EnvironmentPickerUI({
                     <EnvironmentMenuItem
                       value="reuse"
                       label="Existing worktree"
-                      description={reuseDisabled ? REUSE_DISABLED_REASON : undefined}
+                      description={
+                        reuseDisabled ? REUSE_DISABLED_REASON : undefined
+                      }
                       icon={REUSE_ENVIRONMENT_ICON_NAME}
-                      selected={parsed?.type === "reuse" || parsed?.type === "worktree-path"}
+                      selected={
+                        parsed?.type === "reuse" ||
+                        parsed?.type === "worktree-path"
+                      }
                       disabled={reuseDisabled}
                       onSelect={() => {
                         onSelectReuse();
@@ -815,7 +820,7 @@ function MachineContextualEnvironmentOptions({
                 <EnvironmentMenuItem
                   key={provider.id}
                   value={`provider:any:${provider.id}`}
-                  label={provider.displayName}
+                  label={providerCreationLabel(provider)}
                   description={providerDescription(
                     provider,
                     inputsControlProviderIds,

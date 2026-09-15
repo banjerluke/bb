@@ -146,9 +146,11 @@ describe("EnvironmentPickerUI", () => {
         defaultOpen
       />,
     );
-    fireEvent.click(screen.getByRole("menuitem", { name: "New worktree" }));
+    fireEvent.click(screen.getByRole("option", { name: "New worktree" }));
     expect(onSelectProvider).toHaveBeenCalledWith(provider, host.id);
-    expect(screen.getByRole("button", { name: "Environment" }).textContent).toContain("New worktree");
+    expect(
+      screen.getByRole("button", { name: "Environment" }).textContent,
+    ).toContain("New worktree");
   });
 
   it("does not expose an ephemeral host through the single-machine fallback", () => {
@@ -256,12 +258,10 @@ describe("EnvironmentPickerUI", () => {
         modal={false}
       />,
     );
-    fireEvent.pointerDown(screen.getByRole("button", { name: "Environment" }), {
+    fireEvent.click(screen.getByRole("button", { name: "Environment" }), {
       button: 0,
     });
-    fireEvent.click(
-      screen.getByRole("menuitem", { name: /Existing worktree/u }),
-    );
+    fireEvent.click(screen.getByRole("option", { name: /Existing worktree/u }));
     expect(onSelectReuse).toHaveBeenCalledTimes(1);
     unmount();
 
@@ -281,8 +281,8 @@ describe("EnvironmentPickerUI", () => {
     );
     const trigger = screen.getByRole("button", { name: "Environment" });
     expect(trigger.textContent).toContain("Reuse");
-    fireEvent.pointerDown(trigger, { button: 0 });
-    const reuseRow = screen.getByRole("menuitem", {
+    fireEvent.click(trigger, { button: 0 });
+    const reuseRow = screen.getByRole("option", {
       name: /Existing worktree/u,
     });
     expect(reuseRow.getAttribute("aria-disabled")).toBe("true");
