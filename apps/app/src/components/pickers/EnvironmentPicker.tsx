@@ -1,3 +1,4 @@
+import { GIT_WORKTREE_ENVIRONMENT_PROVIDER_ID } from "@bb/client-core";
 import { EnvironmentProviderIcon } from "@/components/plugin/EnvironmentProviderIcon";
 import { useMemo, useRef, useState } from "react";
 import type { Host, ProjectSource } from "@bb/domain";
@@ -45,6 +46,12 @@ import { PickerLoadingRows } from "./PickerLoadingRows";
 import { MachineIcon } from "@/components/machines/MachineLabel";
 import { searchMachineHosts } from "./machine-picker-search";
 import { useResetPickerScroll } from "./useResetPickerScroll";
+
+function providerCreationLabel(provider: SystemEnvironmentProvider): string {
+  return provider.id === GIT_WORKTREE_ENVIRONMENT_PROVIDER_ID
+    ? "New worktree"
+    : provider.displayName;
+}
 
 interface SelectedEnvironment {
   modeLabel: string;
@@ -95,7 +102,7 @@ export interface EnvironmentPickerUIProps {
   onSelectReuse?: () => void;
 }
 
-export const REUSE_DISABLED_REASON = "No existing environments found.";
+export const REUSE_DISABLED_REASON = "No existing worktrees found.";
 
 export const PROVIDER_INPUTS_CONTROL_MISSING_REASON =
   "Needs its plugin's control";
@@ -272,9 +279,9 @@ export function EnvironmentPickerUI({
         !selectedProvider.machineProviderId && selectedMachineName !== null;
       return {
         modeLabel: showsHost
-          ? `${selectedMachineName} · ${selectedProvider.displayName}`
-          : selectedProvider.displayName,
-        compactModeLabel: selectedProvider.displayName,
+          ? `${selectedMachineName} · ${providerCreationLabel(selectedProvider)}`
+          : providerCreationLabel(selectedProvider),
+        compactModeLabel: providerCreationLabel(selectedProvider),
         icon: pluginIconName(selectedProvider.icon),
       };
     }
@@ -529,14 +536,14 @@ export function EnvironmentPickerUI({
                   <CommandGroup className="shrink-0">
                     <EnvironmentMenuItem
                       value="reuse"
-                      label="Existing environment"
+                      label="Existing worktree"
                       description={reuseDisabled ? REUSE_DISABLED_REASON : undefined}
                       icon={REUSE_ENVIRONMENT_ICON_NAME}
                       selected={parsed?.type === "reuse" || parsed?.type === "worktree-path"}
                       disabled={reuseDisabled}
                       onSelect={() => {
                         onSelectReuse();
-                        setOpen(false);
+                        handleOpenChange(false);
                       }}
                     />
                   </CommandGroup>
@@ -579,7 +586,7 @@ function HostlessEnvironmentOptions({
           <EnvironmentMenuItem
             key={provider.id}
             value={`provider:any:${provider.id}`}
-            label={provider.displayName}
+            label={providerCreationLabel(provider)}
             description={providerDescription(
               provider,
               inputsControlProviderIds,
@@ -642,7 +649,7 @@ function EnvironmentOptionsSection({
             <EnvironmentMenuItem
               key={provider.id}
               value={`provider:${hostId}:${provider.id}`}
-              label={provider.displayName}
+              label={providerCreationLabel(provider)}
               description={providerDescription(
                 provider,
                 inputsControlProviderIds,
@@ -992,7 +999,7 @@ function MachineSection({
               <EnvironmentMenuItem
                 key={provider.id}
                 value={`provider:${host.id}:${provider.id}`}
-                label={provider.displayName}
+                label={providerCreationLabel(provider)}
                 description={
                   connected
                     ? providerDescription(provider, inputsControlProviderIds)

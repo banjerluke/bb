@@ -128,6 +128,29 @@ function renderPicker(ui: ReactElement) {
 }
 
 describe("EnvironmentPickerUI", () => {
+  it("labels worktree creation without changing the selected provider", () => {
+    const provider = {
+      ...branchProvider,
+      id: "git-worktree",
+      displayName: "Worktree",
+    };
+    const onSelectProvider = vi.fn();
+    renderPicker(
+      <EnvironmentPickerUI
+        value="provider:git-worktree"
+        sources={sources}
+        host={host}
+        isLocal
+        providers={[provider]}
+        onSelectProvider={onSelectProvider}
+        defaultOpen
+      />,
+    );
+    fireEvent.click(screen.getByRole("menuitem", { name: "New worktree" }));
+    expect(onSelectProvider).toHaveBeenCalledWith(provider, host.id);
+    expect(screen.getByRole("button", { name: "Environment" }).textContent).toContain("New worktree");
+  });
+
   it("does not expose an ephemeral host through the single-machine fallback", () => {
     const ephemeralHost: Host = {
       ...host,
@@ -218,7 +241,7 @@ describe("EnvironmentPickerUI", () => {
     },
   );
 
-  it("offers an existing-environment row that enters reuse mode and disables when nothing exists", () => {
+  it("offers an existing-worktree row that enters reuse mode and disables when nothing exists", () => {
     const onSelectReuse = vi.fn();
     const { unmount } = renderPicker(
       <EnvironmentPickerUI
@@ -237,7 +260,7 @@ describe("EnvironmentPickerUI", () => {
       button: 0,
     });
     fireEvent.click(
-      screen.getByRole("menuitem", { name: /Existing environment/u }),
+      screen.getByRole("menuitem", { name: /Existing worktree/u }),
     );
     expect(onSelectReuse).toHaveBeenCalledTimes(1);
     unmount();
@@ -260,10 +283,10 @@ describe("EnvironmentPickerUI", () => {
     expect(trigger.textContent).toContain("Reuse");
     fireEvent.pointerDown(trigger, { button: 0 });
     const reuseRow = screen.getByRole("menuitem", {
-      name: /Existing environment/u,
+      name: /Existing worktree/u,
     });
     expect(reuseRow.getAttribute("aria-disabled")).toBe("true");
-    expect(reuseRow.textContent).toContain("No existing environments found.");
+    expect(reuseRow.textContent).toContain("No existing worktrees found.");
   });
 
   it("bounds arbitrary provider labels without changing selection", () => {

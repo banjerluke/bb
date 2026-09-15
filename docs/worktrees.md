@@ -75,7 +75,7 @@ Ownership decides who cleans up:
 When you open the new-thread composer with a project selected, bb asks each
 configured project machine for `git worktree list` of that machine's source
 and merges the results with the project's reusable environments. Pick
-**Existing environment** in the environment picker to browse them:
+**Existing worktree** in the environment picker to browse them:
 
 - Every worktree of the project's repos appears — including ones with no bb
   thread yet. The project source checkout itself is represented by **Project

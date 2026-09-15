@@ -2,10 +2,8 @@
 
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import {
-  ReuseEnvironmentPicker,
-  type ReuseThreadOption,
-} from "./ReuseEnvironmentPicker";
+import type { ReuseThreadOption } from "@/components/pickers/reuse-environment/reuse-options";
+import { ReuseEnvironmentPicker } from "@/components/pickers/ReuseEnvironmentPicker";
 
 vi.mock("@/hooks/queries/environment-provider-queries", () => ({
   useSystemEnvironmentProviders: () => ({ providers: [] }),

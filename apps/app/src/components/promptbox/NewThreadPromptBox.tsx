@@ -55,11 +55,11 @@ import {
   type ProjectSelectorCreateProjectConfig,
   type ProjectSelectorOption,
 } from "@/components/pickers/ProjectSelector";
-import {
-  ReuseEnvironmentPicker,
-  type ReuseDiscoveryFailure,
-  type ReuseThreadOption,
-} from "@/components/pickers/ReuseEnvironmentPicker";
+import type {
+  ReuseThreadOption,
+  ReuseDiscoveryFailure,
+} from "@/components/pickers/reuse-environment/reuse-options";
+import { ReuseEnvironmentPicker } from "@/components/pickers/ReuseEnvironmentPicker";
 import {
   selectHosts,
   selectPrimaryHost,

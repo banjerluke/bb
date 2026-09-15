@@ -29,7 +29,7 @@ import { getProviderIconInfo } from "../src/lib/provider-icon";
 import type { PickerOption } from "../src/components/pickers/OptionPicker";
 import type { ModelPickerOption } from "../src/components/pickers/model-picker-option";
 import type { ProjectSelectorOption } from "../src/components/pickers/ProjectSelector";
-import type { ReuseThreadOption } from "../src/components/pickers/ReuseEnvironmentPicker";
+import type { ReuseThreadOption } from "../src/components/pickers/reuse-environment/reuse-options";
 import type { ExecutionControlsProps } from "../src/components/promptbox/ExecutionControls";
 import {
   INERT_TYPEAHEAD_COMMAND_CONFIG,

@@ -1,9 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { SystemEnvironmentProvider } from "@bb/server-contract";
-import {
-  reuseThreadOptionDisplay,
-  type ReuseThreadOption,
-} from "./ReuseEnvironmentPicker";
+import type { ReuseThreadOption } from "@/components/pickers/reuse-environment/reuse-options";
+import { reuseThreadOptionDisplay } from "@/components/pickers/reuse-environment/ReuseEnvironmentRows";
 
 const provider: SystemEnvironmentProvider = {
   machineProviderId: null,
