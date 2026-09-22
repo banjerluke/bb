@@ -908,6 +908,7 @@ describe("bridge", () => {
         workflowsEnabled: false,
         baseInstructions: "You are a manager.",
         cwd: "/tmp/worktree",
+        disallowedTools: ["ExitPlanMode", "NotebookEdit", "Task"],
         instructionMode: "replace",
         permissionMode: "default",
         permissionScope: "workspace",
@@ -916,6 +917,11 @@ describe("bridge", () => {
     );
 
     expect(options.cwd).toBe("/tmp/worktree");
+    expect(options.disallowedTools).toEqual([
+      "ExitPlanMode",
+      "NotebookEdit",
+      "Task",
+    ]);
     expect(options.systemPrompt).toBe("You are a manager.");
   });
 

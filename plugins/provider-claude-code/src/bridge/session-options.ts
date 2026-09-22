@@ -18,6 +18,7 @@ export interface BuildSessionOptionsArgs {
   additionalWorkspaceWriteRoots?: readonly string[];
   baseInstructions?: string;
   cwd: string;
+  disallowedTools?: readonly string[];
   instructionMode: InstructionMode;
   model?: string;
   permissionMode: ClaudePermissionMode;
@@ -261,6 +262,9 @@ export function buildSessionOptions(
     ...(sandbox ? { sandbox } : {}),
     ...(additionalDirectories.length > 0
       ? { additionalDirectories: [...additionalDirectories] }
+      : {}),
+    ...(params.disallowedTools && params.disallowedTools.length > 0
+      ? { disallowedTools: [...params.disallowedTools] }
       : {}),
   };
 }
