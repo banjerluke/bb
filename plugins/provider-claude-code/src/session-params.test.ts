@@ -94,9 +94,35 @@ describe("buildClaudeSessionParams", () => {
       model: "claude-sonnet-5",
       reasoningLevel: "high",
       serviceTier: "default",
+      disallowedTools: ["Agent", "Task", "ListAgents"],
       config: { envVars: { BB_TEST: "1" } },
     });
     expect(params.baseInstructions).toContain("Session instructions");
+  });
+
+  it("hides the tools a thread's settings turn off so the SDK drops their schemas", () => {
+    const build = (providerOptions: Record<string, unknown>) =>
+      buildClaudeSessionParams({
+        threadId: "thread-1",
+        cwd: "/tmp/worktree",
+        instructionMode: "append",
+        options: {
+          ...toCanonicalWireOptions(EXECUTION_CONTEXT),
+          providerOptions,
+        },
+      });
+
+    expect(
+      build({ providerSubagentsEnabled: true, interactiveToolsEnabled: true }),
+    ).not.toHaveProperty("disallowedTools");
+    expect(
+      build({ providerSubagentsEnabled: false, interactiveToolsEnabled: true }),
+    ).toMatchObject({ disallowedTools: ["Agent", "Task", "ListAgents"] });
+    expect(
+      build({ providerSubagentsEnabled: true, interactiveToolsEnabled: false }),
+    ).toMatchObject({
+      disallowedTools: ["AskUserQuestion", "ScheduleWakeup", "ReportFindings"],
+    });
   });
 
   it("falls back to provider defaults when the providerOptions bag is absent", () => {

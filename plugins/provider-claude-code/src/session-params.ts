@@ -14,6 +14,10 @@ import {
   toClaudePermissionMode,
   type ClaudePermissionMode,
 } from "./interactive-contract.js";
+import {
+  CLAUDE_INTERACTIVE_TOOL_NAMES,
+  CLAUDE_SUBAGENT_TOOL_NAMES,
+} from "./tool-names.js";
 
 interface AdditionalWorkspaceWriteRootsParams {
   additionalWorkspaceWriteRoots: string[];
@@ -49,10 +53,12 @@ function buildClaudeSkillConfigParams(
   }
 
   return {
-    plugins: skillRoots.map((skillRoot): ClaudeLocalPluginConfig => ({
-      type: "local",
-      path: skillRoot.localPluginPath,
-    })),
+    plugins: skillRoots.map(
+      (skillRoot): ClaudeLocalPluginConfig => ({
+        type: "local",
+        path: skillRoot.localPluginPath,
+      }),
+    ),
   };
 }
 
@@ -79,8 +85,22 @@ export type ClaudeSessionExecutionOptions = RuntimePermissionPolicy & {
   sandboxEnabled: boolean;
   memoryEnabled?: boolean | undefined;
   providerSubagentsEnabled?: boolean | undefined;
+  interactiveToolsEnabled?: boolean | undefined;
   skillRoots?: readonly ClaudeCodeSkillRoot[] | undefined;
 };
+
+function resolveHiddenToolNames(
+  options: ClaudeSessionExecutionOptions,
+): readonly string[] {
+  return [
+    ...(options.providerSubagentsEnabled === false
+      ? CLAUDE_SUBAGENT_TOOL_NAMES
+      : []),
+    ...(options.interactiveToolsEnabled === false
+      ? CLAUDE_INTERACTIVE_TOOL_NAMES
+      : []),
+  ];
+}
 
 function resolveClaudeSessionPermissionMode(
   options: ClaudeSessionExecutionOptions,
@@ -115,6 +135,7 @@ function buildInternalSessionParams(
         )
       : undefined;
   const skillConfig = buildClaudeSkillConfigParams(args.options.skillRoots);
+  const disallowedTools = resolveHiddenToolNames(args.options);
   return {
     baseInstructions,
     threadId: args.threadId,
@@ -141,6 +162,7 @@ function buildInternalSessionParams(
     memoryEnabled: args.options.memoryEnabled,
     providerSubagentsEnabled: args.options.providerSubagentsEnabled,
     ...(dynamicTools && dynamicTools.length > 0 ? { dynamicTools } : {}),
+    ...(disallowedTools.length > 0 ? { disallowedTools } : {}),
   };
 }
 
@@ -153,6 +175,7 @@ const claudeProviderOptionsSchema = z
     sandboxEnabled: z.boolean().optional(),
     memoryEnabled: z.boolean().optional(),
     providerSubagentsEnabled: z.boolean().optional(),
+    interactiveToolsEnabled: z.boolean().optional(),
     additionalWorkspaceWriteRoots: z.array(z.string()).optional(),
   })
   .passthrough();
@@ -199,6 +222,7 @@ export function buildClaudeSessionParams(
       sandboxEnabled: providerOptions.sandboxEnabled ?? true,
       memoryEnabled: providerOptions.memoryEnabled,
       providerSubagentsEnabled: providerOptions.providerSubagentsEnabled,
+      interactiveToolsEnabled: providerOptions.interactiveToolsEnabled,
     },
   });
 }
