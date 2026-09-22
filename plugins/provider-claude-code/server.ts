@@ -32,6 +32,13 @@ export default function plugin(bb: BbPluginApi) {
         "Disable the 1M-token context window for Claude Code threads. Applies on the next turn.",
       default: false,
     },
+    interactiveToolsDisabled: {
+      type: "boolean",
+      label: "Disable interactive tools",
+      description:
+        "Hide AskUserQuestion, ScheduleWakeup and ReportFindings. Threads that run without someone watching cannot use them.",
+      default: false,
+    },
     chromeEnabled: {
       type: "boolean",
       label: "Claude in Chrome",
@@ -105,6 +112,8 @@ export default function plugin(bb: BbPluginApi) {
         memoryEnabled: context.settings.memoryEnabled !== false,
         providerSubagentsEnabled: context.settings.subagentsDisabled !== true,
         workflowsEnabled: context.settings.workflowsDisabled !== true,
+        interactiveToolsEnabled:
+          context.settings.interactiveToolsDisabled !== true,
         chromeEnabled: context.settings.chromeEnabled === true,
         disable1MContext: context.settings.disable1MContext === true,
         sandboxEnabled: context.settings.sandboxEnabled !== false,

@@ -103,6 +103,10 @@ import {
 } from "./tool-proxy-mcp.js";
 import { BB_BRIDGE_MCP_SERVER_NAME } from "../tool-classification.js";
 import {
+  CLAUDE_SUBAGENT_INVOCATION_TOOL_NAMES,
+  CLAUDE_WORKFLOW_TOOL_NAME,
+} from "../tool-names.js";
+import {
   type ClaudeInteractiveResponse,
   type ClaudePermissionMode,
   type ClaudePermissionRequestApprovalParams,
@@ -157,9 +161,6 @@ const promptInputItemSchema = z.discriminatedUnion("type", [
     mimeType: z.string().optional(),
   }),
 ]);
-
-const CLAUDE_PROVIDER_SUBAGENT_TOOL_NAMES = new Set(["Agent", "Task"]);
-const CLAUDE_WORKFLOW_TOOL_NAME = "Workflow";
 
 interface BridgeEventNotification {
   jsonrpc: "2.0";
@@ -978,6 +979,7 @@ function toSessionConstructionConfig(
       chromeEnabled: params.chromeEnabled,
       disable1MContext: params.disable1MContext,
       cwd: params.cwd,
+      disallowedTools: params.disallowedTools,
       instructionMode: params.instructionMode,
       permissionMode: params.permissionMode,
       permissionScope: params.permissionScope,
@@ -1191,7 +1193,7 @@ function trackSdkAssistantPermissionEscalation(
       content.id,
       permissionEscalation,
     );
-    if (CLAUDE_PROVIDER_SUBAGENT_TOOL_NAMES.has(content.name)) {
+    if (CLAUDE_SUBAGENT_INVOCATION_TOOL_NAMES.has(content.name)) {
       threadSession.permissionEscalationBySubagentParentToolUseId.set(
         content.id,
         permissionEscalation,
@@ -1248,7 +1250,7 @@ function buildSessionTrackingHooks(
         input.tool_use_id,
         permissionEscalation,
       );
-      if (CLAUDE_PROVIDER_SUBAGENT_TOOL_NAMES.has(input.tool_name)) {
+      if (CLAUDE_SUBAGENT_INVOCATION_TOOL_NAMES.has(input.tool_name)) {
         threadSession.permissionEscalationBySubagentParentToolUseId.set(
           input.tool_use_id,
           permissionEscalation,
@@ -1256,7 +1258,7 @@ function buildSessionTrackingHooks(
       }
       if (
         !threadSession.attachment.liveSettings.providerSubagentsEnabled &&
-        CLAUDE_PROVIDER_SUBAGENT_TOOL_NAMES.has(input.tool_name)
+        CLAUDE_SUBAGENT_INVOCATION_TOOL_NAMES.has(input.tool_name)
       ) {
         return {
           continue: true,
