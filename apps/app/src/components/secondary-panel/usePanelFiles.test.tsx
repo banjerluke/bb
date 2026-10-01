@@ -2,6 +2,10 @@ import { renderHookStatically } from "@/test/render-hook-statically";
 import { describe, expect, it, vi } from "vitest";
 import type { ExperimentalLiveFileTarget } from "@get-bb/plugin-sdk";
 import {
+  DOWNLOAD_FILE_OPENER_PREFERENCE,
+  useFileOpenerPreference,
+} from "@/lib/file-opener-preference";
+import {
   usePanelFiles,
   type PanelFileScope,
 } from "./usePanelFiles";
@@ -129,5 +133,28 @@ describe.each(SURFACES)("panel files on the $name", (surface) => {
       }),
     ).toBe(false);
     expect(openTab).not.toHaveBeenCalled();
+  });
+});
+
+describe("panel file downloads", () => {
+  it("reports a preference-driven download as handled without revealing the panel", () => {
+    const openTab = vi.fn(() => null);
+    const reveal = vi.fn();
+    const pdf = { ...OWN_WORKSPACE, path: "reports/q3.pdf" };
+    const openPdf = () =>
+      renderHookStatically(() =>
+        usePanelFiles({ available: true, openTab, reveal, scope: null }),
+      ).openFilePreview({ target: pdf, location: null });
+    const [, setPreference] = renderHookStatically(useFileOpenerPreference);
+
+    expect(openPdf()).toBe(false);
+    setPreference({ pdf: DOWNLOAD_FILE_OPENER_PREFERENCE });
+    try {
+      expect(openPdf()).toBe(true);
+    } finally {
+      setPreference({});
+    }
+    expect(openTab).toHaveBeenCalledTimes(2);
+    expect(reveal).not.toHaveBeenCalled();
   });
 });
