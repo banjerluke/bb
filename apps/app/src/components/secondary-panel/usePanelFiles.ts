@@ -5,11 +5,16 @@ import type {
   WorkspaceFileTabState,
 } from "@bb/client-core";
 import type { AppFilePreviewIntent } from "@/lib/app-navigation-host";
+import { getFileOpenRequestPath } from "@/lib/file-download";
+import { useFileOpenerPreferenceValue } from "@/lib/file-opener-preference";
 import {
   normalizeExperimentalFileOpenOptions,
   toFilePreviewLineRange,
 } from "@/lib/live-file-navigation";
-import type { FileOpenerOverride } from "@/lib/plugin-slot-resolvers";
+import {
+  shouldDownloadWithFileOpenerPreference,
+  type FileOpenerOverride,
+} from "@/lib/plugin-slot-resolvers";
 import type { OpenSecondaryPanelTabRequest } from "./useThreadFileTabs";
 
 export interface PanelFileScope {
@@ -106,6 +111,7 @@ export function usePanelFiles({
   reveal,
   scope,
 }: UsePanelFilesArgs): PanelFiles {
+  const fileOpenerPreference = useFileOpenerPreferenceValue();
   const openWorkspaceFile = useCallback(
     (file: WorkspaceFileTabState, options?: PanelFileOpenOptions) => {
       openTab({ kind: "workspace-file-preview", tab: file }, options);
@@ -129,15 +135,23 @@ export function usePanelFiles({
       if (!available) return false;
       const request = livePreviewRequest(intent, scope);
       if (request === null) return false;
+      const path = getFileOpenRequestPath(request);
+      const expectsDownload =
+        path !== null &&
+        shouldDownloadWithFileOpenerPreference({
+          path,
+          preference: fileOpenerPreference,
+          ...(intent.viewer !== undefined ? { override: intent.viewer } : {}),
+        });
       const tab = openTab(
         request,
         intent.viewer === undefined ? undefined : { viewer: intent.viewer },
       );
-      if (tab === null) return false;
+      if (tab === null) return expectsDownload;
       reveal();
       return true;
     },
-    [available, openTab, reveal, scope],
+    [available, fileOpenerPreference, openTab, reveal, scope],
   );
   return { openFilePreview, openHostFile, openStorageFile, openWorkspaceFile };
 }

@@ -3,6 +3,10 @@
 import { act, cleanup, renderHook } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import type { ExperimentalLiveFileTarget } from "@get-bb/plugin-sdk";
+import {
+  DOWNLOAD_FILE_OPENER_PREFERENCE,
+  useFileOpenerPreference,
+} from "@/lib/file-opener-preference";
 import { usePanelFiles, type PanelFileScope } from "./usePanelFiles";
 import type { OpenSecondaryPanelTabRequest } from "./useThreadFileTabs";
 
@@ -135,5 +139,38 @@ describe.each(SURFACES)("panel files on the $name", (surface) => {
       }),
     ).toBe(false);
     expect(openTab).not.toHaveBeenCalled();
+  });
+});
+
+describe("panel file downloads", () => {
+  it("reports a preference-driven download as handled without revealing the panel", () => {
+    const openTab = vi.fn(() => null);
+    const reveal = vi.fn();
+    const { result } = renderHook(() => {
+      const [, setPreference] = useFileOpenerPreference();
+      const files = usePanelFiles({
+        available: true,
+        openTab,
+        reveal,
+        scope: null,
+      });
+      return { files, setPreference };
+    });
+    const pdf = { ...OWN_WORKSPACE, path: "reports/q3.pdf" };
+
+    expect(
+      result.current.files.openFilePreview({ target: pdf, location: null }),
+    ).toBe(false);
+    act(() => {
+      result.current.setPreference({ pdf: DOWNLOAD_FILE_OPENER_PREFERENCE });
+    });
+    expect(
+      result.current.files.openFilePreview({ target: pdf, location: null }),
+    ).toBe(true);
+    expect(openTab).toHaveBeenCalledTimes(2);
+    expect(reveal).not.toHaveBeenCalled();
+    act(() => {
+      result.current.setPreference({});
+    });
   });
 });
