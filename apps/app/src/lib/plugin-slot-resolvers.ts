@@ -332,11 +332,13 @@ export function resolveReplacement<Registration>(
 
 export type FileOpenerOverride =
   | "builtin"
+  | "download"
   | { pluginId: string; openerId: string };
 
 export type FileOpenerPreferenceMap = Record<string, string>;
 
 export const BUILT_IN_FILE_OPENER_PREFERENCE = "__builtin__";
+export const DOWNLOAD_FILE_OPENER_PREFERENCE = "__download__";
 
 export function getFileExtension(path: string): string | null {
   const name = path.split("/").at(-1) ?? path;
@@ -359,7 +361,9 @@ export function resolveFileOpenerReplacement(args: {
   override?: FileOpenerOverride;
 }): ResolvedReplacement<PluginFileOpenerSlot> {
   const override = args.override;
-  if (override === "builtin") return OWNER_REPLACEMENT;
+  if (override === "builtin" || override === "download") {
+    return OWNER_REPLACEMENT;
+  }
   if (override !== undefined) {
     return resolveReplacement(
       args.registrations,
@@ -372,7 +376,10 @@ export function resolveFileOpenerReplacement(args: {
   const extension = getFileExtension(args.path);
   if (extension === null) return OWNER_REPLACEMENT;
   const preference = args.preference?.[extension];
-  if (preference === BUILT_IN_FILE_OPENER_PREFERENCE) {
+  if (
+    preference === BUILT_IN_FILE_OPENER_PREFERENCE ||
+    preference === DOWNLOAD_FILE_OPENER_PREFERENCE
+  ) {
     return OWNER_REPLACEMENT;
   }
   return resolveReplacement(
@@ -401,3 +408,17 @@ export function resolveComposerPopups(
 export type ResolvedComposerPopup = ReturnType<
   typeof resolveComposerPopups
 >[number];
+
+export function shouldDownloadWithFileOpenerPreference(args: {
+  path: string;
+  preference: FileOpenerPreferenceMap;
+  override?: FileOpenerOverride;
+}): boolean {
+  if (args.override === "download") return true;
+  if (args.override !== undefined) return false;
+  const extension = getFileExtension(args.path);
+  return (
+    extension !== null &&
+    args.preference[extension] === DOWNLOAD_FILE_OPENER_PREFERENCE
+  );
+}
