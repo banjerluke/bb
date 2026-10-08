@@ -6,6 +6,7 @@ import {
   fireEvent,
   render,
   screen,
+  waitFor,
   within,
 } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
@@ -13,7 +14,9 @@ import {
   resetPluginLogoStoreForTest,
   setPluginLogoUrls,
 } from "@/lib/plugin-logos";
+import * as clipboard from "@/lib/clipboard";
 import { COMPACT_VIEWPORT_QUERY } from "@bb/shared-ui/hooks/use-compact-viewport";
+import { HOVER_NONE_QUERY } from "@bb/shared-ui/hooks/use-media-query";
 import { POINTER_COARSE_QUERY } from "@bb/shared-ui/hooks/use-pointer-coarse";
 import {
   computeMessageActionRowLayout,
@@ -67,6 +70,32 @@ function installControlledResizeObserver() {
 function mockMobileCoarsePointer() {
   vi.spyOn(window, "matchMedia").mockImplementation((query) => ({
     matches: query === COMPACT_VIEWPORT_QUERY || query === POINTER_COARSE_QUERY,
+    media: query,
+    onchange: null,
+    addListener: () => {},
+    removeListener: () => {},
+    addEventListener: () => {},
+    removeEventListener: () => {},
+    dispatchEvent: () => false,
+  }));
+}
+
+function mockWideCoarsePointer() {
+  vi.spyOn(window, "matchMedia").mockImplementation((query) => ({
+    matches: query === POINTER_COARSE_QUERY,
+    media: query,
+    onchange: null,
+    addListener: () => {},
+    removeListener: () => {},
+    addEventListener: () => {},
+    removeEventListener: () => {},
+    dispatchEvent: () => false,
+  }));
+}
+
+function mockWideNoHoverPointer() {
+  vi.spyOn(window, "matchMedia").mockImplementation((query) => ({
+    matches: query === HOVER_NONE_QUERY,
     media: query,
     onchange: null,
     addListener: () => {},
@@ -439,6 +468,69 @@ describe("MessageActionBar", () => {
     );
 
     expect(screen.getByRole("button", { name: "Copy message" })).toBeTruthy();
+  });
+
+  it("passes image-only content to the tablet overflow copy action", async () => {
+    mockWideCoarsePointer();
+    const copy = vi
+      .spyOn(clipboard, "copyToClipboardWithToast")
+      .mockResolvedValue(true);
+    render(
+      <MessageActionBar
+        timestamp={TIMESTAMP}
+        messageText=""
+        copyImageUrl="/attachments/screenshot.png"
+        alignment="end"
+        mobileActionDisplay="overflow"
+      />,
+    );
+
+    expect(screen.queryByRole("button", { name: "Copy message" })).toBeNull();
+    fireEvent.click(
+      within(openDesktopMenu()).getByRole("menuitem", { name: "Copy message" }),
+    );
+    await waitFor(() =>
+      expect(copy).toHaveBeenCalledWith(
+        "",
+        expect.objectContaining({ imageUrl: "/attachments/screenshot.png" }),
+      ),
+    );
+  });
+
+  it("uses the touch action layout on wide coarse-pointer viewports", () => {
+    mockWideCoarsePointer();
+    render(
+      <MessageActionBar
+        timestamp={TIMESTAMP}
+        messageText="The latest answer."
+        alignment="start"
+        mobileActionDisplay="inline"
+        onEdit={vi.fn()}
+      />,
+    );
+
+    const edit = screen.getByRole("button", { name: "Edit message" });
+    expect(edit.hasAttribute("data-state")).toBe(false);
+    expect(edit.classList).toContain("pointer-coarse:size-7");
+    expect(edit.classList).not.toContain("max-md:pointer-coarse:size-7");
+  });
+
+  it("uses the touch action layout when the pointer cannot hover", () => {
+    mockWideNoHoverPointer();
+    render(
+      <MessageActionBar
+        timestamp={TIMESTAMP}
+        messageText="The latest answer."
+        alignment="start"
+        mobileActionDisplay="overflow"
+        onEdit={vi.fn()}
+      />,
+    );
+
+    expect(
+      screen.getByRole("button", { name: "Message actions" }).classList,
+    ).toContain("[@media(hover:none)]:opacity-100");
+    expect(screen.queryByRole("button", { name: "Edit message" })).toBeNull();
   });
 
   it("marks the action row while the menu is open", () => {
