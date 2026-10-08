@@ -145,4 +145,21 @@ describe("TabPill", () => {
     expect(onClose).toHaveBeenCalledOnce();
     expect(onSelect).not.toHaveBeenCalled();
   });
+
+  it("sizes the close affordance for touch at any viewport width", () => {
+    render(
+      <TabPill
+        label="Side chat"
+        title="Side chat"
+        isActive
+        onSelect={vi.fn()}
+        closeAction={{ onClose: vi.fn(), closeLabel: "Close side chat" }}
+      />,
+    );
+
+    const close = screen.getByRole("button", { name: "Close side chat" });
+    expect(close.classList).toContain("pointer-coarse:size-5");
+    expect(close.classList).toContain("[@media(hover:none)]:size-5");
+    expect(close.classList).not.toContain("max-md:pointer-coarse:size-5");
+  });
 });
