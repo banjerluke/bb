@@ -8,6 +8,10 @@ import {
 import { CopyButton } from "../../ui/copy-button.js";
 import { Icon } from "@bb/shared-ui/icon";
 import { useIsCompactViewport } from "@bb/shared-ui/hooks/use-compact-viewport";
+import {
+  HOVER_NONE_QUERY,
+  useMediaQuery,
+} from "@bb/shared-ui/hooks/use-media-query";
 import { usePointerCoarse } from "@bb/shared-ui/hooks/use-pointer-coarse";
 import { copyToClipboardWithToast } from "@/lib/clipboard";
 import {
@@ -205,8 +209,9 @@ export const ACTION_ROW_METADATA_CLASS = cn(
   HOVER_REVEAL_CLASS,
 );
 const MOBILE_INLINE_ACTION_CLASS =
-  "max-md:pointer-coarse:size-7 max-md:pointer-coarse:[&_[data-icon-root]]:size-4";
-const MOBILE_OVERFLOW_ACTION_CLASS = "max-md:pointer-coarse:hidden";
+  "pointer-coarse:size-7 pointer-coarse:[&_[data-icon-root]]:size-4 [@media(hover:none)]:size-7 [@media(hover:none)]:[&_[data-icon-root]]:size-4";
+const MOBILE_OVERFLOW_ACTION_CLASS =
+  "pointer-coarse:hidden [@media(hover:none)]:hidden";
 const ACTION_TOOLTIP_SIDE = "bottom";
 const MENU_CONTENT_WIDTH_CLASS = "max-w-[min(16rem,calc(100vw-1rem))]";
 
@@ -317,13 +322,14 @@ export function MessageActionBar({
 }: MessageActionBarProps) {
   const isCompactViewport = useIsCompactViewport();
   const isPointerCoarse = usePointerCoarse();
+  const cannotHover = useMediaQuery(HOVER_NONE_QUERY);
   const hasCopy = messageText.length > 0 || copyImageUrl !== undefined;
   const hasAddToChat =
     (hasCopy || addToChatAttachments.length > 0) && onAddToChat !== undefined;
   const [collisionBoundary, setCollisionBoundary] = useState<
     HTMLElement | undefined
   >();
-  const isCompactTouch = isCompactViewport && isPointerCoarse;
+  const isTouch = isPointerCoarse || cannotHover;
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const mobileDirectActionClass =
     mobileActionDisplay === "inline"
@@ -393,7 +399,7 @@ export function MessageActionBar({
         ]
       : []),
   ];
-  const usesOverflowOnly = isCompactTouch && mobileActionDisplay === "overflow";
+  const usesOverflowOnly = isTouch && mobileActionDisplay === "overflow";
   const {
     slotRef: measureSlotRef,
     rowRef,
@@ -401,9 +407,7 @@ export function MessageActionBar({
   } = useMessageActionRowFit({
     enabled: !usesOverflowOnly,
     actionCount: inlineCandidates.length,
-    actionWidth: isCompactTouch
-      ? TOUCH_ACTION_WIDTH_PX
-      : DESKTOP_ACTION_WIDTH_PX,
+    actionWidth: isTouch ? TOUCH_ACTION_WIDTH_PX : DESKTOP_ACTION_WIDTH_PX,
   });
   const slotRef = useCallback(
     (node: HTMLDivElement | null) => {
@@ -442,7 +446,10 @@ export function MessageActionBar({
     <TooltipProvider delayDuration={300}>
       <div
         ref={slotRef}
-        className={cn(slotClass, "h-5 max-md:pointer-coarse:h-7")}
+        className={cn(
+          slotClass,
+          "h-5 pointer-coarse:h-7 [@media(hover:none)]:h-7",
+        )}
       >
         <div
           className={rowPositionClass}
@@ -450,7 +457,7 @@ export function MessageActionBar({
         >
           {alignment === "end" ? metadata : null}
           <div ref={rowRef} className={ACTION_ROW_CLASS}>
-            {isCompactTouch ? (
+            {isTouch ? (
               <MobileInlineActions
                 actions={inlineCandidates.slice(0, inlineCount)}
               />
