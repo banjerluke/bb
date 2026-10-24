@@ -655,7 +655,7 @@ export const SURFACE_GROUPS: SurfaceGroup[] = [
         summary:
           "Use the draft prompt from plugin code. With this, a plugin can:",
         bullets: [
-          "Read the draft's text, @-mentions, and attachments",
+          "Read the draft's text, @-mentions, attachments, and new-thread title",
           "Insert or rewrite text, @-mentions, and thread pills in one step",
           "Lock the prompt box while the plugin works, then release it",
           "Write into any prompt box on screen from a panel or page",
@@ -671,8 +671,16 @@ export const SURFACE_GROUPS: SurfaceGroup[] = [
           "ComposerDraftSnapshot",
           "PluginComposerApi.insert",
           "ComposerMention",
+          "PluginComposerApi.experimental_threadTitle",
+          "PluginComposerApi.experimental_setThreadTitle",
         ],
-        firstParty: ["Agent Annotations", "Docs", "Send later", "Workflows"],
+        firstParty: [
+          "Agent Annotations",
+          "Docs",
+          "Send later",
+          "Thread title",
+          "Workflows",
+        ],
       },
       {
         id: "mention-provider",

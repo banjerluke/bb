@@ -309,7 +309,7 @@ describe("plugin agent contributions reach thread runtime config", () => {
         projectId: project.id,
         providerId: "codex",
         requestId: encodeClientTurnRequestIdNumber({ value: requestValue }),
-        syncGeneratedTitle: false,
+        syncTitle: false,
         thread,
       });
 
@@ -401,7 +401,7 @@ describe("plugin agent contributions reach thread runtime config", () => {
       projectId: project.id,
       providerId: "codex",
       requestId: encodeClientTurnRequestIdNumber({ value: 3 }),
-      syncGeneratedTitle: false,
+      syncTitle: false,
       thread,
     });
 

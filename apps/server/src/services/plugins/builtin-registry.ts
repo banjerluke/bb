@@ -235,6 +235,11 @@ export const BUILTIN_PLUGINS = [
     pluginId: "bb--composer",
     defaultEnabled: true,
   },
+  {
+    name: "thread-title",
+    pluginId: "bb--thread-title",
+    defaultEnabled: false,
+  },
 ].map((plugin): BundledPluginDefinition => ({
   ...plugin,
   autoInstall: true,

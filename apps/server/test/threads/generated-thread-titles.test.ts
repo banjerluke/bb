@@ -498,20 +498,20 @@ describe("generated thread titles", () => {
       });
     });
   });
-  it("does not queue a daemon rename for user-supplied titles", async () => {
+  it("syncs a user-supplied title to the session without generating one", async () => {
     mockThreadMetadata({ title: "Generated Title" });
     await withTestHarness(async (harness) => {
       const { host } = seedHostSession(harness.deps, {
-        id: "host-user-title-no-rename",
+        id: "host-user-title-rename",
       });
       const { project } = seedProjectWithSource(harness.deps, {
         hostId: host.id,
-        path: "/tmp/user-title-no-rename-project",
+        path: "/tmp/user-title-rename-project",
       });
       seedEnvironment(harness.deps, {
         hostId: host.id,
         projectId: project.id,
-        path: "/tmp/user-title-no-rename-workspace",
+        path: "/tmp/user-title-rename-workspace",
         status: "ready",
       });
       installFakeGitWorktreeProvider(() => ({
@@ -519,14 +519,14 @@ describe("generated thread titles", () => {
         environment: {
           type: "host",
           hostId: host.id,
-          path: "/tmp/user-title-no-rename-workspace",
+          path: "/tmp/user-title-rename-workspace",
         },
       }));
 
       const thread = await createManagedWorktreeThread(harness, {
         hostId: host.id,
         projectId: project.id,
-        text: "Use the user supplied title without daemon rename",
+        text: "Use the user supplied title for the daemon rename",
         title: "User Picked Title",
       });
       const start = await waitForQueuedCommand(
@@ -537,19 +537,21 @@ describe("generated thread titles", () => {
       await reportQueuedCommandSuccess(
         harness,
         start,
-        { providerThreadId: "provider-user-title-no-rename" },
+        { providerThreadId: "provider-user-title-rename" },
         { hostId: host.id },
       );
 
-      await expect(
-        waitForQueuedCommandAfter(
-          harness,
-          start.row.cursor,
-          ({ command }) =>
-            command.type === "thread.rename" && command.threadId === thread.id,
-          100,
-        ),
-      ).rejects.toThrow("Timed out waiting for queued command");
+      const rename = await waitForQueuedCommandAfter(
+        harness,
+        start.row.cursor,
+        ({ command }) =>
+          command.type === "thread.rename" && command.threadId === thread.id,
+      );
+      expect(rename.command).toMatchObject({
+        type: "thread.rename",
+        threadId: thread.id,
+        title: "User Picked Title",
+      });
       expect(completeTitle).not.toHaveBeenCalled();
     });
   });

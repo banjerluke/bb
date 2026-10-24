@@ -52,6 +52,35 @@ whether desktop custom-server ids should survive a URL edit (they hash the
 URL today), and verify switching on iOS, Android and desktop with account and
 custom servers, including a mobile route pinned to a profile by a deep link.
 
+## `PluginComposerApi.experimental_threadTitle` / `experimental_setThreadTitle`
+
+The title of the thread a new-thread composer will start. `experimental_threadTitle`
+is the raw typed value (`""` when empty, `null` in thread, queued-message and
+sent-message composers); `experimental_setThreadTitle(title)` writes it and
+throws where it is `null`. The value lives in its own per-draft store next to
+the prompt draft (`apps/app/src/lib/thread-title-draft.ts`, localStorage
+`<prompt draft key>:thread-title`). `NewThreadComposer`'s `submitDraft` reads
+it on every submission path (Enter, `submit`, `sendAt`, held sends), sends the
+whitespace-collapsed, trimmed value as `title` (omitted when blank), clears it
+with the draft, and restores it on failure unless a new title was typed.
+
+**Core callers.** Core's own submit, clear and restore go through the same
+`threadTitleDraftController`. The bundled Thread title plugin
+(`plugins/thread-title`, `bb--thread-title`) is the only UI.
+
+Docs: `frontend-hooks-and-ui.md`.
+
+**Audit before stabilizing.**
+
+1. **Embedded composers.** `experimental_NewThreadComposer` has a title store
+   too, but no plugin surface binds to it, and its `NewThreadRequest` leaves
+   `title` to the embedding plugin. Decide whether the title should reach that
+   contract.
+2. **Provider handoff.** A thread composer whose provider change starts a new
+   thread reports `null`. Decide whether handoff drafts should carry a title.
+3. **Disabled title UI.** A title typed before the plugin was disabled stays in
+   the draft and is still sent. Decide whether core should drop it.
+
 ## Composer popups
 
 `ComposerCustomization.experimental_popups` registers `{ id, label, component }`

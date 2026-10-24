@@ -203,8 +203,21 @@ export const NewThreadPromptBoxUI = memo(function NewThreadPromptBoxUI({
     isRunning: false,
     isSubmitting,
   });
+  const composerHost = useMemo<PluginComposerHost | null>(
+    () =>
+      pluginComposerHost
+        ? {
+            ...pluginComposerHost,
+            focus: () => {
+              focusDefault();
+              pluginComposerHost.focus();
+            },
+          }
+        : null,
+    [focusDefault, pluginComposerHost],
+  );
   const controller = useComposerExtensionController({
-    host: pluginComposerHost ?? null,
+    host: composerHost,
     view: composerView,
     focusDefault,
   });

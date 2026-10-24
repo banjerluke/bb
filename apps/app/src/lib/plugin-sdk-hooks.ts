@@ -69,6 +69,7 @@ import {
   type PromptDraftController,
   type PromptDraftScope,
 } from "@/hooks/usePromptDraftStorage";
+import { threadTitleDraftController } from "@/lib/thread-title-draft";
 import { emptyPromptDraftState, isPromptDraftEmpty } from "@bb/client-core";
 import { useRouteState } from "@/hooks/useRouteState";
 import { useServerConnectionState } from "@/hooks/useServerConnectionState";
@@ -523,6 +524,7 @@ export function useComposer(): PluginComposerApi {
   const composerHost = usePluginComposerHost();
   const tracksDraft = useRef(false);
   const tracksSelection = useRef(false);
+  const tracksThreadTitle = useRef(false);
   const { projectId, threadId } = useRouteState();
   const routeScope: PromptDraftScope = useMemo(
     () =>
@@ -562,6 +564,30 @@ export function useComposer(): PluginComposerApi {
   useSyncExternalStore(
     subscribeToReadSelection,
     selectionSnapshot,
+    getNoComposerSelection,
+  );
+  const routeThreadTitle =
+    routeScope.kind === "new-thread"
+      ? threadTitleDraftController(routeDraft.storageKey)
+      : null;
+  const getThreadTitle =
+    composerHost === null ? routeThreadTitle?.get : composerHost.getThreadTitle;
+  const subscribeThreadTitle =
+    composerHost === null
+      ? routeThreadTitle?.subscribe
+      : composerHost.subscribeThreadTitle;
+  const subscribeToReadThreadTitle = useCallback(
+    (onChange: () => void) =>
+      subscribeThreadTitle === undefined
+        ? subscribeToNoComposerSelection()
+        : subscribeThreadTitle(() => {
+            if (tracksThreadTitle.current) onChange();
+          }),
+    [subscribeThreadTitle],
+  );
+  useSyncExternalStore(
+    subscribeToReadThreadTitle,
+    getThreadTitle ?? getNoComposerSelection,
     getNoComposerSelection,
   );
   const textEffectKey = composerHost?.textEffectKey ?? routeDraft.storageKey;
@@ -676,12 +702,20 @@ export function useComposer(): PluginComposerApi {
         getCurrent: routeDraft.getCurrent,
         setDraft: routeDraft.setDraft,
         focus: () => requestComposerFocus(routeDraft.storageKey),
+        ...(routeThreadTitle === null
+          ? {}
+          : {
+              getThreadTitle: routeThreadTitle.get,
+              setThreadTitle: routeThreadTitle.set,
+              subscribeThreadTitle: routeThreadTitle.subscribe,
+            }),
       },
     [
       composerHost,
       routeDraft.getCurrent,
       routeDraft.setDraft,
       routeDraft.storageKey,
+      routeThreadTitle,
       scope,
     ],
   );
@@ -718,6 +752,9 @@ export function useComposer(): PluginComposerApi {
           if (property === "selection") {
             tracksSelection.current = true;
           }
+          if (property === "experimental_threadTitle") {
+            tracksThreadTitle.current = true;
+          }
           return Reflect.get(target, property, receiver);
         },
       }),
@@ -728,6 +765,7 @@ export function useComposer(): PluginComposerApi {
 function createComposerDraftsStore(hosts: readonly PluginComposerHost[]) {
   let snapshot = hosts.map((host) => host.getCurrent());
   let selections = hosts.map((host) => host.getSelection?.() ?? null);
+  let threadTitles = hosts.map((host) => host.getThreadTitle?.() ?? null);
   return {
     subscribe(listener: () => void): () => void {
       const unsubscribes = hosts.flatMap((host) => [
@@ -735,6 +773,9 @@ function createComposerDraftsStore(hosts: readonly PluginComposerHost[]) {
         ...(host.subscribeSelection === undefined
           ? []
           : [host.subscribeSelection(listener)]),
+        ...(host.subscribeThreadTitle === undefined
+          ? []
+          : [host.subscribeThreadTitle(listener)]),
       ]);
       return () => {
         for (const unsubscribe of unsubscribes) unsubscribe();
@@ -743,14 +784,19 @@ function createComposerDraftsStore(hosts: readonly PluginComposerHost[]) {
     getSnapshot() {
       const next = hosts.map((host) => host.getCurrent());
       const nextSelections = hosts.map((host) => host.getSelection?.() ?? null);
+      const nextThreadTitles = hosts.map(
+        (host) => host.getThreadTitle?.() ?? null,
+      );
       if (
         next.some((draft, index) => draft !== snapshot[index]) ||
         nextSelections.some(
           (selection, index) => selection !== selections[index],
-        )
+        ) ||
+        nextThreadTitles.some((title, index) => title !== threadTitles[index])
       ) {
         snapshot = next;
         selections = nextSelections;
+        threadTitles = nextThreadTitles;
       }
       return snapshot;
     },

@@ -172,7 +172,7 @@ describe("thread plugin metadata in agent configuration", () => {
         projectId: project.id,
         providerId: "codex",
         requestId: encodeClientTurnRequestIdNumber({ value: 1 }),
-        syncGeneratedTitle: false,
+        syncTitle: false,
         thread,
       });
 

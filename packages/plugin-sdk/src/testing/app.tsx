@@ -297,6 +297,8 @@ export interface ComposerLog {
   readonly scope: PluginComposerScope;
   /** Current picker snapshot, or null for a composer without pickers. */
   readonly selection: ComposerSelection | null;
+  /** Current `experimental_threadTitle`, or null outside a new-thread composer. */
+  readonly threadTitle: string | null;
   /** Latest host-provided attachment count exposed through `useComposerView()`. */
   readonly attachmentCount: number;
   /** Latest host-rendered text effect requested by the plugin. */
@@ -2249,6 +2251,8 @@ export interface RenderSlotOptions<
     isRunning?: boolean;
     isSubmitting?: boolean;
     selection?: ComposerSelection;
+    /** Initial `experimental_threadTitle` of a new-thread composer. Omitted → `""`. */
+    threadTitle?: string;
     /**
      * What `submittingBlockedReason` reports, and what `submit` rejects
      * with. Omitted → "Type a message first." while the draft is empty,
@@ -2980,6 +2984,9 @@ export function renderSlot<
         };
 
   let composerText = options.composer?.text ?? "";
+  let composerThreadTitle = options.composer?.threadTitle ?? "";
+  const currentThreadTitle = () =>
+    composerScope.kind === "new-thread" ? composerThreadTitle : null;
   let composerMentions: ComposerMention[] = [
     ...(options.composer?.mentions ?? []),
   ];
@@ -3054,6 +3061,9 @@ export function renderSlot<
     get selection() {
       return composerSelection;
     },
+    get threadTitle() {
+      return currentThreadTitle();
+    },
     get attachmentCount() {
       return composerAttachmentCount;
     },
@@ -3081,6 +3091,12 @@ export function renderSlot<
     getDraft: composerDraft,
     getAttachmentCount: () => composerAttachmentCount,
     getSelection: () => composerSelection,
+    getThreadTitle: currentThreadTitle,
+    setThreadTitle: (title) => {
+      if (title === composerThreadTitle) return;
+      composerThreadTitle = title;
+      notifyComposerListeners();
+    },
     setDraft: (next) => {
       if (next.attachments !== undefined) {
         composerAttachments = [...next.attachments];
@@ -3123,6 +3139,7 @@ export function renderSlot<
           ? {}
           : { experimental_data: pluginSubmission.data }),
       });
+      composerThreadTitle = "";
       commitComposerDraft("", []);
       for (const listener of submissionListeners) listener();
     },

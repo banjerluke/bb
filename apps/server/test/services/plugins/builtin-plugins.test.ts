@@ -612,6 +612,7 @@ describe("builtin plugin reconciliation", () => {
       "concurrency-limit": true,
       "scheduled-send": true,
       drafts: true,
+      "thread-title": false,
       "provider-retry": true,
       "push-notifications": true,
     });

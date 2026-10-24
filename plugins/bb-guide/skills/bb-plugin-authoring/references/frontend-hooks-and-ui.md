@@ -88,6 +88,16 @@ experimental_openFileExternally(options), experimental_openTerminal({ terminalId
     with the queued message's or the thread composer's settings. Missing keys
     mean the corresponding picker has no selected value; `null` means this
     composer has no pickers. Use `isSubmittingBlocked` for submission readiness.
+  - Thread title: `experimental_threadTitle` is the title typed for the
+    thread a new-thread composer will start (`""` when none, `null` in a
+    composer that does not start a thread), and
+    `experimental_setThreadTitle(title)` sets it. The title is part of the
+    draft: it persists, syncs across windows, rides on every submission
+    (Enter, `submit`, scheduled and held sends), clears when the submission is
+    accepted and comes back when it fails. bb collapses whitespace and trims
+    it on creation; a blank title leaves bb to generate one. A title never
+    makes the draft submittable, and `setThreadTitle` throws in a composer
+    that does not start a thread.
   - Editing: `insert(parts, { at?, block? })` inserts text and pills at the
     current selection (default) or at `"end"`; `block: true` places the content
     on its own paragraph. `replace(next)` atomically sets text and mentions;

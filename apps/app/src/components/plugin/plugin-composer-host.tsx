@@ -25,6 +25,9 @@ export interface PluginComposerHost {
   subscribeDraft(listener: () => void): () => void;
   getSelection?(): ComposerSelection;
   subscribeSelection?(listener: () => void): () => void;
+  getThreadTitle?(): string;
+  setThreadTitle?(title: string): void;
+  subscribeThreadTitle?(listener: () => void): () => void;
   setDraft(next: PromptDraftState): void;
   isAvailable?(): boolean;
   focus(): void;

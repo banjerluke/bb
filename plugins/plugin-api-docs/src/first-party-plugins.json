@@ -208,5 +208,10 @@
     "id": "thread-list",
     "name": "Thread list",
     "icon": "ListView"
+  },
+  {
+    "id": "bb--thread-title",
+    "name": "Thread title",
+    "icon": "Edit"
   }
 ]

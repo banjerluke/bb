@@ -4203,6 +4203,24 @@ export interface PluginComposerApi {
   /** Current picker values, or null when this composer has no pickers. Stable until a picker value changes. */
   readonly selection: ComposerSelection | null;
   /**
+   * The title typed for the thread this composer will start, exactly as
+   * typed; `""` when there is none. Null in a composer that does not start a
+   * thread: a thread's composer, queued-message and sent-message editors.
+   */
+  readonly experimental_threadTitle: string | null;
+  /**
+   * Set the title of the thread this composer will start. The title is part
+   * of the draft: it survives reloads and project switches, syncs across
+   * windows, and every submission from this composer carries it (Enter,
+   * `submit`, scheduled and held sends). An accepted submission clears it
+   * with the draft; a failed one restores it unless a new title was typed
+   * meanwhile. On creation, whitespace runs collapse to one space and the
+   * ends are trimmed; a blank title leaves bb to generate one. It never makes
+   * the draft submittable on its own (`isEmpty` ignores it). Throws in a
+   * composer that does not start a thread.
+   */
+  experimental_setThreadTitle(title: string): void;
+  /**
    * Replace text and mentions together in one committed change. An updater
    * receives the latest immutable snapshot, including attachments, and must
    * return its result synchronously. Returning that same snapshot is a no-op.

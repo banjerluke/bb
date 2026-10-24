@@ -47,6 +47,9 @@ export type ComposerSource = Pick<
   | "setSelection"
   | "getSelection"
   | "subscribeSelection"
+  | "getThreadTitle"
+  | "setThreadTitle"
+  | "subscribeThreadTitle"
 >;
 
 type ComposerLifecycle = Pick<
@@ -170,6 +173,8 @@ function composerHandleTarget(source: ComposerSource): ComposerHandleTarget {
       getComposerEditorBridge(key)?.closePopup(pluginId) ?? false,
     getAttachmentCount: () => source.getCurrent().attachments.length,
     getSelection: () => source.getSelection?.() ?? null,
+    getThreadTitle: () => source.getThreadTitle?.() ?? null,
+    setThreadTitle: (title) => source.setThreadTitle?.(title),
     addQuote: (text) => {
       const current = source.getCurrent();
       const next = appendQuoteAndAttachmentsToDraft(current, text, []);

@@ -574,7 +574,7 @@ export async function editThreadMessage(
       environment: readyEnvironment,
       projectId: editableThread.projectId,
       providerId: editableThread.providerId,
-      syncGeneratedTitle: false,
+      syncTitle: false,
     });
     const prepared: HostDaemonCommandResult<"thread.rewind.prepare"> =
       await runLiveHostCommand(deps, {

@@ -47,6 +47,9 @@ export interface ComposerHandleTarget {
   getDraft(): ComposerDraftSnapshot;
   getAttachmentCount(): number;
   getSelection(): ComposerSelection | null;
+  /** Null when this composer does not start a thread. */
+  getThreadTitle(): string | null;
+  setThreadTitle(title: string): void;
   setDraft(next: ComposerDraftReplacement): void;
   addQuote(text: string): void;
   getEditorState(): ComposerEditorState;
@@ -344,6 +347,16 @@ export function createComposerHandleBinding(
     }
     return hostSetSelection(selection);
   };
+  const setThreadTitle = (title: string) => {
+    requireAvailable();
+    if (typeof title !== "string") {
+      throw new Error("A thread title must be a string.");
+    }
+    if (target().getThreadTitle() === null) {
+      throw new Error("This composer doesn't start a thread.");
+    }
+    target().setThreadTitle(title);
+  };
   const submittedListeners = new Set<() => void>();
   let submittedSubscription: {
     scope: string;
@@ -422,6 +435,10 @@ export function createComposerHandleBinding(
     get selection() {
       return target().getSelection();
     },
+    get experimental_threadTitle() {
+      return target().getThreadTitle();
+    },
+    experimental_setThreadTitle: setThreadTitle,
     setText: (next) => {
       warnDeprecatedComposerMember("setText", "replace");
       if (legacyAvailable("setText")) replaceText(next);

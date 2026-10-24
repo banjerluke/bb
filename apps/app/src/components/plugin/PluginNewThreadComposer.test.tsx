@@ -45,6 +45,7 @@ import {
 import { encodeReuseValue } from "@/components/pickers/environment-picker-value";
 import { useRootComposeReuseEnvironment } from "@/lib/root-compose-selection";
 import { getPromptDraftAccessor } from "@/hooks/usePromptDraftStorage";
+import { threadTitleDraftController } from "@/lib/thread-title-draft";
 import { makeThreadListEntry } from "@bb/test-helpers/domain-fixtures";
 import { createDeferredPromise } from "@bb/test-helpers";
 import type { PromptDraftAttachment } from "@bb/client-core";
@@ -2111,6 +2112,101 @@ describe("PluginNewThreadComposer seeding", () => {
       expect(latestPromptBoxProps().isSubmitting).toBe(false);
     });
     expect(latestPromptBoxProps().value).toBe("next thread");
+  });
+
+  function threadTitleDraft(draftKey: string) {
+    return threadTitleDraftController(
+      getPromptDraftAccessor({ kind: "plugin-new-thread", key: draftKey })
+        .storageKey,
+    );
+  }
+
+  it.each([
+    ["enter", {}],
+    ["send-later", { sendAt: Date.now() + 60 * 60 * 1000 }],
+    [
+      "save-draft",
+      { pluginSubmission: { pluginId: "drafts", data: { kind: "draft" } } },
+    ],
+  ])(
+    "sends the draft's thread title on %s and clears it",
+    async (path, extras) => {
+      const draftKey = `title-${path}`;
+      threadTitleDraft(draftKey).set("  Release\n  notes ");
+      const submitted: NewThreadRequest[] = [];
+      renderComposer(
+        STORED_REQUEST,
+        (request) => submitted.push(request),
+        draftKey,
+      );
+      await waitFor(() => {
+        expect(latestPromptBoxProps().disabled).toBe(false);
+      });
+
+      await act(async () => {
+        await latestPromptBoxProps().onSubmit(extras);
+      });
+
+      expect(submitted).toHaveLength(1);
+      expect(submitted[0]).toMatchObject({ ...extras, title: "Release notes" });
+      expect(threadTitleDraft(draftKey).get()).toBe("");
+    },
+  );
+
+  it("leaves a blank title for bb to generate", async () => {
+    threadTitleDraft("title-blank").set("   ");
+    const submitted: NewThreadRequest[] = [];
+    renderComposer(
+      STORED_REQUEST,
+      (request) => submitted.push(request),
+      "title-blank",
+    );
+    await waitFor(() => {
+      expect(latestPromptBoxProps().disabled).toBe(false);
+    });
+
+    await submit();
+
+    expect(submitted).toHaveLength(1);
+    expect(submitted[0]).not.toHaveProperty("title");
+  });
+
+  it("restores the title with the draft when submission fails, unless a new one was typed", async () => {
+    for (const typedMeanwhile of [null, "Next thread title"]) {
+      const draftKey = `title-failed-${typedMeanwhile === null ? "restore" : "keep"}`;
+      let failSubmit: (() => void) | null = null;
+      const onSubmit = vi.fn(
+        () =>
+          new Promise<void>((_resolve, reject) => {
+            failSubmit = () => reject(new Error("create failed"));
+          }),
+      );
+      threadTitleDraft(draftKey).set("Release notes");
+      const view = renderComposer(STORED_REQUEST, onSubmit, draftKey);
+      await waitFor(() => {
+        expect(latestPromptBoxProps().disabled).toBe(false);
+      });
+
+      act(() => {
+        pressSubmit();
+      });
+      await waitFor(() => expect(onSubmit).toHaveBeenCalledTimes(1));
+      expect(threadTitleDraft(draftKey).get()).toBe("");
+      if (typedMeanwhile !== null) {
+        threadTitleDraft(draftKey).set(typedMeanwhile);
+      }
+      await act(async () => {
+        failSubmit?.();
+      });
+      await waitFor(() => {
+        expect(latestPromptBoxProps().isSubmitting).toBe(false);
+      });
+
+      expect(threadTitleDraft(draftKey).get()).toBe(
+        typedMeanwhile ?? "Release notes",
+      );
+      view.unmount();
+    }
   });
 
   it("accepts overlapping uploads and stays busy until every batch settles", async () => {

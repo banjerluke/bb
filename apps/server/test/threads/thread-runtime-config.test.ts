@@ -222,7 +222,7 @@ describe("thread runtime config", () => {
           projectId: project.id,
           providerId: "acp-custom",
           requestId: encodeClientTurnRequestIdNumber({ value: 101 }),
-          syncGeneratedTitle: false,
+          syncTitle: false,
           thread,
         });
         expect(startCommand.bridgeLaunch.providerOptions).toMatchObject({
@@ -348,7 +348,7 @@ describe("thread runtime config", () => {
           projectId: project.id,
           providerId,
           requestId: encodeClientTurnRequestIdNumber({ value: 102 }),
-          syncGeneratedTitle: false,
+          syncTitle: false,
           thread,
         });
         expect(startCommand.bridgeLaunch.providerOptions).toMatchObject({
@@ -822,7 +822,7 @@ describe("thread runtime config", () => {
         projectId: project.id,
         providerId: "codex",
         requestId: encodeClientTurnRequestIdNumber({ value: 1 }),
-        syncGeneratedTitle: false,
+        syncTitle: false,
         thread,
       });
 
@@ -888,7 +888,7 @@ describe("thread runtime config", () => {
           projectId: project.id,
           providerId,
           requestId: encodeClientTurnRequestIdNumber({ value: 1 }),
-          syncGeneratedTitle: false,
+          syncTitle: false,
           thread,
         });
       }
@@ -994,7 +994,7 @@ describe("thread runtime config", () => {
         projectId: project.id,
         providerId: "hooked",
         requestId: encodeClientTurnRequestIdNumber({ value: 1 }),
-        syncGeneratedTitle: false,
+        syncTitle: false,
         thread,
       });
 
@@ -1065,7 +1065,7 @@ describe("thread runtime config", () => {
         projectId: project.id,
         providerId: "claude-code",
         requestId: encodeClientTurnRequestIdNumber({ value: 1 }),
-        syncGeneratedTitle: false,
+        syncTitle: false,
         thread,
       });
 
@@ -1095,7 +1095,7 @@ describe("thread runtime config", () => {
         projectId: project.id,
         providerId: "pi",
         requestId: encodeClientTurnRequestIdNumber({ value: 2 }),
-        syncGeneratedTitle: false,
+        syncTitle: false,
         thread: piThread,
       });
       expect(piCommand.options.promptMode).toBeUndefined();

@@ -671,7 +671,7 @@ async function sendThreadMessageWithoutContextClear(
       },
       projectId: thread.projectId,
       providerId: thread.providerId,
-      syncGeneratedTitle: false,
+      syncTitle: false,
     };
     const command = args.historyReplacement
       ? {

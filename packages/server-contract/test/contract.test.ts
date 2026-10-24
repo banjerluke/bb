@@ -1602,6 +1602,31 @@ describe("server-contract canonical schemas", () => {
     ).toBe("hidden");
   });
 
+  it("trims thread titles and rejects blank ones", () => {
+    const base = {
+      projectId: "proj_123",
+      providerId: "codex",
+      origin: "app" as const,
+      input: [{ type: "text" as const, text: "Start" }],
+      environment: {
+        type: "host" as const,
+        hostId: "host_abc",
+        workspace: { type: "unmanaged" as const, path: null },
+      },
+    };
+
+    expect(
+      createThreadRequestSchema.parse({ ...base, title: "  Release notes \n" })
+        .title,
+    ).toBe("Release notes");
+    expect(
+      createThreadRequestSchema.safeParse({ ...base, title: "   " }).success,
+    ).toBe(false);
+    expect(
+      contract.updateThreadRequestSchema.safeParse({ title: " \t" }).success,
+    ).toBe(false);
+  });
+
   it("allows assigning a hidden thread to a section at creation", () => {
     expect(
       createThreadRequestSchema.parse({

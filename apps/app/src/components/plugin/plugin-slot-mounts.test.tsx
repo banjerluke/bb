@@ -1688,6 +1688,60 @@ describe("useComposer().experimental_setSelection", () => {
     }
     expect(setSelection).toHaveBeenCalledTimes(1);
   });
+
+  it("tracks the new-thread title reactively and refuses it where no thread starts", async () => {
+    const listeners = new Set<() => void>();
+    let title = "Draft title";
+    const setThreadTitle = vi.fn((next: string) => {
+      title = next;
+      for (const listener of listeners) listener();
+    });
+    let captured: PluginComposerApi | null = null;
+    const titles: Array<string | null> = [];
+    registerSelectionProbe((composer) => {
+      captured = composer;
+      titles.push(composer.experimental_threadTitle);
+    });
+    const newThreadView = render(
+      <MemoryRouter initialEntries={["/"]}>
+        <Harness
+          host={{
+            scope: { kind: "new-thread", projectId: "proj_title" },
+            textEffectKey: "new-thread:title",
+            getThreadTitle: () => title,
+            setThreadTitle,
+            subscribeThreadTitle: (listener) => {
+              listeners.add(listener);
+              return () => listeners.delete(listener);
+            },
+          }}
+        />
+      </MemoryRouter>,
+    );
+    expect(titles.at(-1)).toBe("Draft title");
+    await act(async () => {
+      captured!.experimental_setThreadTitle("Renamed");
+    });
+    expect(setThreadTitle).toHaveBeenCalledWith("Renamed");
+    expect(titles.at(-1)).toBe("Renamed");
+    newThreadView.unmount();
+
+    render(
+      <MemoryRouter initialEntries={["/threads/thr_title"]}>
+        <Harness
+          host={{
+            scope: { kind: "thread", threadId: "thr_title" },
+            textEffectKey: "thread:thr_title",
+          }}
+        />
+      </MemoryRouter>,
+    );
+    expect(titles.at(-1)).toBeNull();
+    expect(() => captured!.experimental_setThreadTitle("Nope")).toThrow(
+      /doesn't start a thread/,
+    );
+    expect(setThreadTitle).toHaveBeenCalledTimes(1);
+  });
 });
 
 describe("PluginPanelView routes", () => {

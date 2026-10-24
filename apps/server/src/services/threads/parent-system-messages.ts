@@ -388,7 +388,7 @@ async function queueReadyParentSystemMessage(
     },
     projectId: args.thread.projectId,
     providerId: args.thread.providerId,
-    syncGeneratedTitle: false,
+    syncTitle: false,
   });
   const activeThread: Thread | null = deps.db.transaction(
     (tx) => {

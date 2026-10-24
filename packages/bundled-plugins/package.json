@@ -46,6 +46,7 @@
     "bb-plugin-bb--mcp": "workspace:*",
     "bb-plugin-bb--prompt-library": "workspace:*",
     "bb-plugin-scheduled-send": "workspace:*",
+    "bb-plugin-bb--thread-title": "workspace:*",
     "bb-plugin-secrets": "workspace:*",
     "bb-plugin-side-chat": "workspace:*",
     "bb-plugin-simple-notes": "workspace:*",

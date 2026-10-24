@@ -137,7 +137,7 @@ export const createThreadRequestSchema = z
     pluginMetadata: pluginMetadataSchema.optional(),
     lifecycleOwnerThreadId: z.string().min(1).optional(),
     visibility: threadVisibilitySchema.optional(),
-    title: z.string().min(1).optional(),
+    title: z.string().trim().min(1).optional(),
     input: z.array(promptInputSchema),
     model: z.string().min(1).optional(),
     serviceTier: serviceTierSchema.optional(),
@@ -232,7 +232,7 @@ export const forkThreadRequestSchema = z
     sourceSeqEnd: z.number().int().nonnegative().optional(),
     input: z.array(promptInputSchema).min(1).optional(),
     agentContextSeed: z.array(agentOnlyPromptInputSchema).min(1).optional(),
-    title: z.string().min(1).optional(),
+    title: z.string().trim().min(1).optional(),
     permissionMode: permissionModeInputSchema.optional(),
     visibility: threadVisibilitySchema.default("visible"),
     environment: createThreadEnvironmentArgsSchema.optional(),
@@ -794,7 +794,7 @@ export type DeleteThreadRequest = z.infer<typeof deleteThreadRequestSchema>;
 
 export const updateThreadRequestSchema = z
   .object({
-    title: z.string().min(1).nullable(),
+    title: z.string().trim().min(1).nullable(),
     sectionId: z.string().min(1).nullable(),
     parentThreadId: z.string().min(1).nullable(),
     model: z.string().min(1).nullable(),
