@@ -175,12 +175,27 @@ const CLAUDE_PROVIDER_SUBAGENT_TOOL_NAMES = new Set([
   "ListAgents",
 ]);
 
-function subagentDisallowedTools(
-  providerSubagentsEnabled: boolean,
+const CLAUDE_INTERACTIVE_TOOL_NAMES = [
+  "AskUserQuestion",
+  "ScheduleWakeup",
+  "ReportFindings",
+];
+
+type DisallowedToolSettings = Pick<
+  ClaudeLiveSessionSettings,
+  "interactiveToolsEnabled" | "providerSubagentsEnabled"
+>;
+
+function disallowedToolNames(
+  settings: DisallowedToolSettings,
 ): string[] | undefined {
-  return providerSubagentsEnabled
-    ? undefined
-    : [...CLAUDE_PROVIDER_SUBAGENT_TOOL_NAMES];
+  const names = [
+    ...(settings.providerSubagentsEnabled
+      ? []
+      : CLAUDE_PROVIDER_SUBAGENT_TOOL_NAMES),
+    ...(settings.interactiveToolsEnabled ? [] : CLAUDE_INTERACTIVE_TOOL_NAMES),
+  ];
+  return names.length > 0 ? names : undefined;
 }
 const CLAUDE_WORKFLOW_TOOL_NAME = "Workflow";
 
@@ -320,6 +335,7 @@ interface SessionConstructionConfig {
 
 interface ClaudeLiveSessionSettings {
   fullAccessApprovalsEnabled: boolean;
+  interactiveToolsEnabled: boolean;
   memoryEnabled: boolean;
   model?: string;
   providerSubagentsEnabled: boolean;
@@ -467,29 +483,33 @@ function applyChromeSetting(
   }
 }
 
-function applySubagentSetting(
+function applyDisallowedToolSettings(
   attachment: ThreadAttachment,
-  enabled: boolean | undefined,
+  params: Partial<DisallowedToolSettings>,
 ): void {
+  const current = attachment.liveSettings;
+  const next: DisallowedToolSettings = {
+    interactiveToolsEnabled:
+      params.interactiveToolsEnabled ?? current.interactiveToolsEnabled,
+    providerSubagentsEnabled:
+      params.providerSubagentsEnabled ?? current.providerSubagentsEnabled,
+  };
   if (
-    enabled === undefined ||
-    attachment.liveSettings.providerSubagentsEnabled === enabled
+    current.interactiveToolsEnabled === next.interactiveToolsEnabled &&
+    current.providerSubagentsEnabled === next.providerSubagentsEnabled
   ) {
     return;
   }
-  const disallowedTools = subagentDisallowedTools(enabled);
+  const disallowedTools = disallowedToolNames(next);
   if (disallowedTools === undefined) {
     delete attachment.sessionOptions.disallowedTools;
   } else {
     attachment.sessionOptions.disallowedTools = disallowedTools;
   }
-  attachment.liveSettings = {
-    ...attachment.liveSettings,
-    providerSubagentsEnabled: enabled,
-  };
+  attachment.liveSettings = { ...current, ...next };
   if (attachment.residentSession) {
     attachment.residentSession.restartBeforeNextTurn = {
-      reason: "Claude Code subagent setting changed",
+      reason: "Claude Code tool settings changed",
       showRuntimeNote: false,
     };
   }
@@ -1077,6 +1097,7 @@ function toInitialLiveSessionSettings(
 ): ClaudeLiveSessionSettings {
   return {
     fullAccessApprovalsEnabled: params.fullAccessApprovalsEnabled,
+    interactiveToolsEnabled: params.interactiveToolsEnabled ?? true,
     memoryEnabled: params.memoryEnabled ?? true,
     ...(params.model !== undefined ? { model: params.model } : {}),
     providerSubagentsEnabled: params.providerSubagentsEnabled ?? true,
@@ -1097,6 +1118,8 @@ function withTurnLiveSessionSettings(
   return {
     fullAccessApprovalsEnabled:
       params.fullAccessApprovalsEnabled ?? current.fullAccessApprovalsEnabled,
+    interactiveToolsEnabled:
+      params.interactiveToolsEnabled ?? current.interactiveToolsEnabled,
     memoryEnabled: params.memoryEnabled ?? current.memoryEnabled,
     ...(model !== undefined ? { model } : {}),
     providerSubagentsEnabled:
@@ -1445,9 +1468,10 @@ function buildTrackedSessionOptions(
     env,
   );
   sessionOptions.permissionMode = params.permissionMode;
-  const disallowedTools = subagentDisallowedTools(
-    params.providerSubagentsEnabled ?? true,
-  );
+  const disallowedTools = disallowedToolNames({
+    interactiveToolsEnabled: params.interactiveToolsEnabled ?? true,
+    providerSubagentsEnabled: params.providerSubagentsEnabled ?? true,
+  });
   if (disallowedTools !== undefined) {
     sessionOptions.disallowedTools = disallowedTools;
   }
@@ -2573,7 +2597,7 @@ async function runTurnInput(
       applyTurnEnvironment(attachment, params.config);
     }
     applyChromeSetting(attachment, params.chromeEnabled);
-    applySubagentSetting(attachment, params.providerSubagentsEnabled);
+    applyDisallowedToolSettings(attachment, params);
     applyContextWindowSetting(attachment, params.disable1MContext);
     applyArtifactSetting(attachment, params.artifactsEnabled);
   }

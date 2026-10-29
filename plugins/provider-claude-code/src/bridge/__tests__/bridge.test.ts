@@ -4866,6 +4866,71 @@ describe("bridge", () => {
     },
   );
 
+  it("keeps interactive tools hidden when the subagent setting changes", async () => {
+    const bridge = createBridgeJsonRpcTestHarness(handleLine);
+    const queries: ControlledClaudeQuery[] = [];
+    queryMock.mockImplementation(() => {
+      const query = createControlledClaudeQuery();
+      queries.push(query);
+      return query;
+    });
+    const options = (providerSubagentsEnabled: boolean) => ({
+      permissionMode: "accept-edits",
+      permissionScope: "workspace",
+      approvalReviewer: "user",
+      permissionEscalation: "ask",
+      instructions: "test",
+      providerOptions: {
+        providerSubagentsEnabled,
+        interactiveToolsEnabled: false,
+      },
+    });
+    const interactiveTools = [
+      "AskUserQuestion",
+      "ScheduleWakeup",
+      "ReportFindings",
+    ];
+
+    try {
+      const threadId = "thread-interactive-tools-disabled";
+      const providerThreadId = "claude-interactive-conversation";
+      bridge.sendRequest(1, "thread/start", {
+        threadId,
+        cwd: "/tmp/worktree",
+        instructionMode: "append",
+        options: options(true),
+      });
+      await bridge.waitForResponse(1);
+      expect(getLatestQueryCall().options.disallowedTools).toEqual(
+        interactiveTools,
+      );
+
+      for (const [index, subagentsEnabled] of [true, false, true].entries()) {
+        const requestId = index + 2;
+        bridge.sendRequest(requestId, "turn/start", {
+          threadId,
+          providerThreadId,
+          input: [{ type: "text", text: "Continue" }],
+          clientRequestId: "creq_abcdefghjk",
+          options: options(subagentsEnabled),
+        });
+        await vi.waitFor(() => expect(queries).toHaveLength(index + 1));
+        await readNextPrompt(getLatestQueryCall());
+        await bridge.waitForResponse(requestId);
+        expect(getLatestQueryCall().options.disallowedTools).toEqual(
+          subagentsEnabled
+            ? interactiveTools
+            : ["Agent", "Task", "ListAgents", ...interactiveTools],
+        );
+        queries[index]?.emit(createSuccessfulResultMessage(providerThreadId));
+        await bridge.flushWork();
+      }
+    } finally {
+      queries.forEach((query) => query.finish());
+      bridge.restore();
+    }
+  });
+
   it("keeps background subagents on their parent tool escalation when canUseTool omits agent metadata", async () => {
     const bridge = createBridgeJsonRpcTestHarness(handleLine);
     const queries: ControlledClaudeQuery[] = [];
