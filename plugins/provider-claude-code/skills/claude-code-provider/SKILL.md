@@ -13,6 +13,11 @@ with `bb plugin config provider-claude-code set <key> <value>`.
   native Agent, Task, and ListAgents tools from the model context. Changes
   restart Claude before the next turn, preserving the conversation. A deny hook
   also blocks native delegation during an active turn after disabling it.
+- `interactiveToolsDisabled` defaults to `false`. Enable with
+  `bb plugin config provider-claude-code set interactiveToolsDisabled true` to
+  remove AskUserQuestion, ScheduleWakeup, and ReportFindings from the model
+  context. Changes restart Claude before the next turn, preserving the
+  conversation.
 - `disable1MContext` defaults to `false`. Enable with
   `bb plugin config provider-claude-code set disable1MContext true` to set
   `CLAUDE_CODE_DISABLE_1M_CONTEXT=1` (`0` when off). Changes restart the

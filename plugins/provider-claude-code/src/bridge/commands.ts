@@ -62,6 +62,7 @@ export const claudeThreadStartParamsSchema = z.object({
   commandDescriptionsEnabled: z.boolean().optional(),
   memoryEnabled: z.boolean().optional(),
   providerSubagentsEnabled: z.boolean().optional(),
+  interactiveToolsEnabled: z.boolean().optional(),
   instructionMode: bridgeInstructionModeSchema,
   dynamicTools: z.array(dynamicToolSchema).optional(),
 });
@@ -95,6 +96,7 @@ export const claudeTurnStartParamsSchema = z.object({
   commandDescriptionsEnabled: z.boolean().optional(),
   memoryEnabled: z.boolean().optional(),
   providerSubagentsEnabled: z.boolean().optional(),
+  interactiveToolsEnabled: z.boolean().optional(),
   config: z.record(z.string(), z.unknown()).optional(),
   permissionMode: claudePermissionModeSchema,
   permissionScope: bridgePermissionScopeSchema,

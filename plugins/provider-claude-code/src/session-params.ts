@@ -82,6 +82,7 @@ export type ClaudeSessionExecutionOptions = RuntimePermissionPolicy & {
   commandDescriptionsEnabled: boolean;
   memoryEnabled?: boolean | undefined;
   providerSubagentsEnabled?: boolean | undefined;
+  interactiveToolsEnabled?: boolean | undefined;
   skillRoots?: readonly ClaudeCodeSkillRoot[] | undefined;
 };
 
@@ -146,6 +147,7 @@ function buildInternalSessionParams(
     commandDescriptionsEnabled: args.options.commandDescriptionsEnabled,
     memoryEnabled: args.options.memoryEnabled,
     providerSubagentsEnabled: args.options.providerSubagentsEnabled,
+    interactiveToolsEnabled: args.options.interactiveToolsEnabled,
     ...(dynamicTools && dynamicTools.length > 0 ? { dynamicTools } : {}),
   };
 }
@@ -162,6 +164,7 @@ const claudeProviderOptionsSchema = z
     commandDescriptionsEnabled: z.boolean().optional(),
     memoryEnabled: z.boolean().optional(),
     providerSubagentsEnabled: z.boolean().optional(),
+    interactiveToolsEnabled: z.boolean().optional(),
     additionalWorkspaceWriteRoots: z.array(z.string()).optional(),
   })
   .passthrough();
@@ -213,6 +216,7 @@ export function buildClaudeSessionParams(
         providerOptions.commandDescriptionsEnabled ?? false,
       memoryEnabled: providerOptions.memoryEnabled,
       providerSubagentsEnabled: providerOptions.providerSubagentsEnabled,
+      interactiveToolsEnabled: providerOptions.interactiveToolsEnabled,
     },
   });
 }
@@ -271,10 +275,12 @@ export function buildClaudeTurnParams(
     commandDescriptionsEnabled: providerOptions.commandDescriptionsEnabled,
     memoryEnabled: providerOptions.memoryEnabled,
     providerSubagentsEnabled: providerOptions.providerSubagentsEnabled,
+    interactiveToolsEnabled: providerOptions.interactiveToolsEnabled,
     ...(config ? { config } : {}),
     permissionMode: toClaudePermissionMode(args.options),
     permissionScope: args.options.permissionScope,
-    additionalWorkspaceWriteRoots: providerOptions.additionalWorkspaceWriteRoots ?? [],
+    additionalWorkspaceWriteRoots:
+      providerOptions.additionalWorkspaceWriteRoots ?? [],
     permissionEscalation: args.options.permissionEscalation,
     ...(providerOptions.claudeCodePermissionMode !== undefined
       ? { claudeCodePermissionMode: providerOptions.claudeCodePermissionMode }
