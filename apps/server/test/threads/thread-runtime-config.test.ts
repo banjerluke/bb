@@ -604,6 +604,7 @@ describe("thread runtime config", () => {
         commandDescriptionsEnabled: false,
         disable1MContext: false,
         fullAccessApprovalsEnabled: false,
+        interactiveToolsEnabled: true,
         memoryEnabled: true,
         providerSubagentsEnabled: true,
         sandboxEnabled: true,
