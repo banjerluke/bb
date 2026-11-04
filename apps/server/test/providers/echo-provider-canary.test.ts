@@ -234,7 +234,7 @@ describe("echo-provider canary: plugin install → server command → runtime �
       projectId: project.id,
       providerId: PROVIDER_ID,
       requestId: encodeClientTurnRequestIdNumber({ value: 1 }),
-      syncGeneratedTitle: false,
+      syncTitle: false,
       thread,
     });
 
@@ -599,7 +599,7 @@ describe("echo-provider canary: plugin install → server command → runtime �
       projectId: project.id,
       providerId: PROVIDER_ID,
       requestId: encodeClientTurnRequestIdNumber({ value: 1 }),
-      syncGeneratedTitle: false,
+      syncTitle: false,
       thread,
     });
     if (command.bridgeLaunch.source.kind !== "artifact") {

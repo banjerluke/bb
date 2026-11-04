@@ -240,6 +240,11 @@ export const BUILTIN_PLUGINS = [
     pluginId: "bb--github-star",
     defaultEnabled: true,
   },
+  {
+    name: "thread-title",
+    pluginId: "bb--thread-title",
+    defaultEnabled: false,
+  },
 ].map((plugin): BundledPluginDefinition => ({
   ...plugin,
   autoInstall: true,

@@ -134,6 +134,10 @@ import {
 } from "@/lib/route-paths";
 import { sdk } from "@/lib/sdk";
 import {
+  submittedThreadTitle,
+  threadTitleDraftController,
+} from "@/lib/thread-title-draft";
+import {
   buildReuseThreadOptions,
   resolveHostEnvironmentProvider,
   resolveNewThreadHostEnvironmentProvider,
@@ -271,6 +275,7 @@ export function resolveSubmittedExecutionSources(
 export interface NewThreadComposerSubmission extends NewThreadRequest {
   pluginSubmission?: CreateThreadRequest["pluginSubmission"];
   sendAt?: number;
+  title?: string;
 }
 
 export interface NewThreadComposerProps {
@@ -1003,6 +1008,7 @@ export function NewThreadComposer({
   );
 
   const promptDraft = usePromptDraftController(draftStorage);
+  const threadTitleDraft = threadTitleDraftController(promptDraft.storageKey);
   const textEffects = useComposerTextEffects(promptDraft.storageKey);
   const promptOptionDraftSnapshotRef = useRef<PromptDraftState | null>(null);
   const snapshotDraftBeforeOptionChange = useCallback(() => {
@@ -1694,6 +1700,8 @@ export function NewThreadComposer({
       { sendAt, pluginSubmission }: ComposerSubmitExtras,
     ) => {
       const submittedDraft = promptDraft.getCurrent();
+      const submittedTitleDraft = threadTitleDraft.get();
+      const title = submittedThreadTitle(submittedTitleDraft);
       const input = promptDraftToInput(submittedDraft);
       if (
         blockedReason !== null ||
@@ -1735,12 +1743,15 @@ export function NewThreadComposer({
         input,
         ...(sendAt === undefined ? {} : { sendAt }),
         ...(pluginSubmission === undefined ? {} : { pluginSubmission }),
+        ...(title === undefined ? {} : { title }),
       };
       isSubmittingRef.current = true;
       setIsSubmitting(true);
       setAttachmentError(null);
       const clearedSubmittedDraft =
         promptDraft.clearIfCurrentMatches(submittedDraft);
+      const clearedSubmittedTitle =
+        threadTitleDraft.clearIfCurrentMatches(submittedTitleDraft);
       recordTelemetryEvent({
         name: "new_thread_submit",
         properties: { outcome: "started" },
@@ -1762,6 +1773,9 @@ export function NewThreadComposer({
         });
         if (clearedSubmittedDraft) {
           promptDraft.restoreIfEmpty(submittedDraft);
+        }
+        if (clearedSubmittedTitle) {
+          threadTitleDraft.restoreIfEmpty(submittedTitleDraft);
         }
         throw submitError;
       } finally {
@@ -1786,6 +1800,7 @@ export function NewThreadComposer({
       serviceTier,
       sessionOptionSelections,
       supportsServiceTier,
+      threadTitleDraft,
     ],
   );
 
@@ -1976,6 +1991,9 @@ export function NewThreadComposer({
       subscribeDraft: promptDraft.subscribe,
       getSelection,
       subscribeSelection,
+      getThreadTitle: threadTitleDraft.get,
+      setThreadTitle: threadTitleDraft.set,
+      subscribeThreadTitle: threadTitleDraft.subscribe,
       setDraft: promptDraft.setDraft,
       focus: focusPromptBox,
       sendsOnEnter: true,
@@ -1991,6 +2009,7 @@ export function NewThreadComposer({
       promptDraft.subscribe,
       setSelection,
       subscribeSelection,
+      threadTitleDraft,
     ],
   );
 

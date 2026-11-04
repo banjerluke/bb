@@ -169,7 +169,7 @@ it.each([
           projectId: project.id,
           providerId: provider.id,
           requestId: encodeClientTurnRequestIdNumber({ value: 1 }),
-          syncGeneratedTitle: false,
+          syncTitle: false,
           thread,
         });
         const submit = await prepareTurnSubmitCommandPayload(harness.deps, {

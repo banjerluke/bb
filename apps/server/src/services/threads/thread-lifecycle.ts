@@ -1428,7 +1428,7 @@ async function requestThreadStartOnce(
   });
   if (result.disposition === "started") {
     inFlightThreadRpcGuard.claim(args.thread.id, "thread.start");
-    if (args.syncGeneratedTitle) {
+    if (args.syncTitle) {
       inFlightThreadRpcGuard.claim(args.thread.id, "thread.start.title-sync");
     }
     void runLiveHostCommand(deps, {

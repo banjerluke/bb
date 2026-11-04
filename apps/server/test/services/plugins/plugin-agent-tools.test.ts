@@ -732,7 +732,7 @@ describe("plugin tools reach thread runtime config", () => {
         projectId: project.id,
         providerId: "codex",
         requestId: encodeClientTurnRequestIdNumber({ value: requestValue }),
-        syncGeneratedTitle: false,
+        syncTitle: false,
         thread,
       });
 
@@ -904,7 +904,7 @@ describe("plugin tools reach thread runtime config", () => {
         projectId: target.project.id,
         providerId: target.providerId,
         requestId: encodeClientTurnRequestIdNumber({ value: requestValue }),
-        syncGeneratedTitle: false,
+        syncTitle: false,
         thread: target.thread,
       });
     };
