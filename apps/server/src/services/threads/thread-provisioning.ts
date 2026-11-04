@@ -289,7 +289,7 @@ async function startThreadIfEnvironmentReady(
     }),
     projectId: args.thread.projectId,
     providerId: args.thread.providerId,
-    syncGeneratedTitle: !args.context.request.titleProvided,
+    syncTitle: true,
   });
 }
 

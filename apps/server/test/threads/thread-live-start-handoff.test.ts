@@ -93,7 +93,7 @@ async function startLiveThreadStartRpc(
     permissionEscalation: "ask",
     projectId: project.id,
     providerId: thread.providerId,
-    syncGeneratedTitle: false,
+    syncTitle: false,
   });
 
   const startCommand = await waitForQueuedCommand(

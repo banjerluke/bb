@@ -77,7 +77,7 @@ describe("ask-user-question builtin plugin", () => {
       requestId: encodeClientTurnRequestIdNumber({
         value: (requestValue += 1),
       }),
-      syncGeneratedTitle: false,
+      syncTitle: false,
       thread,
     });
     return command.dynamicTools;

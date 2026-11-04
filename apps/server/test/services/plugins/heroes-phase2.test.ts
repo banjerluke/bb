@@ -89,7 +89,7 @@ describe("hero plugin: agent-enrichment (Phase 2 surfaces)", () => {
       projectId: project.id,
       providerId: "codex",
       requestId: encodeClientTurnRequestIdNumber({ value: 1 }),
-      syncGeneratedTitle: false,
+      syncTitle: false,
       thread,
     });
 

@@ -84,7 +84,7 @@ export interface ThreadStartCommandArgs {
   projectId: string;
   providerId: string;
   requestId: ClientTurnRequestId;
-  syncGeneratedTitle: boolean;
+  syncTitle: boolean;
   thread: Thread;
 }
 
